@@ -197,10 +197,7 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
           <button class="abtn" onclick="reloadConfig()" title="Herlaad media-config.json van server">↺ HERLAAD</button>
         </div>
       </div>
-      <div style="padding:.6rem 1.4rem;background:#050505;border-bottom:1px solid #111;font-size:.56rem;letter-spacing:.14em;color:#4a6a4a;line-height:1.8">
-        <strong>Workflow:</strong> Upload een bestand → het wordt gedownload + <code style="background:#0a0a0a;padding:1px 5px">media-config.json</code> wordt bijgewerkt.<br>
-        Zet het mediabestand in de <code style="background:#0a0a0a;padding:1px 5px">media/</code> map en <code style="background:#0a0a0a;padding:1px 5px">media-config.json</code> in de root van je GitHub repo → werkt op alle browsers.
-      </div>
+      <div id="ghStatus" style="padding:.6rem 1.4rem;background:#050505;border-bottom:1px solid #111;font-size:.56rem;letter-spacing:.14em;line-height:1.8"></div>
       <div class="aBody" id="adminGrid"></div>
     </div>
   </div>
@@ -806,15 +803,67 @@ function checkPwd(){
     showPanel();
   }else{document.getElementById('pwdError').textContent='Onjuist wachtwoord';document.getElementById('pwdInput').value='';}
 }
-function showPanel(){document.getElementById('loginSection').style.display='none';document.getElementById('panelSection').style.display='block';buildGrid();}
+function showPanel(){document.getElementById('loginSection').style.display='none';document.getElementById('panelSection').style.display='block';buildGrid();updateGhStatus();}
 function closeAdmin(){document.getElementById('adminOverlay').style.display='none';document.getElementById('pwdInput').value='';document.getElementById('pwdError').textContent='';}
+function saveGhAdmin(){
+  ghSettings.owner=(document.getElementById('ghOwner')?.value||'').trim();
+  ghSettings.repo=(document.getElementById('ghRepo')?.value||'').trim();
+  ghSettings.branch=(document.getElementById('ghBranch')?.value||'main').trim();
+  ghSettings.token=(document.getElementById('ghToken')?.value||'').trim();
+  saveGhSettings();updateGhStatus();
+  showToast(ghConfigured()?'GitHub-koppeling opgeslagen!':'GitHub-instellingen gewist');
+}
+async function testGhConnection(){
+  const el=document.getElementById('ghTestResult');
+  saveGhAdmin();
+  if(!ghConfigured()){el.style.color='#933';el.textContent='Vul alle velden in.';return;}
+  el.style.color='#888';el.textContent='Testen…';
+  try{
+    const r=await ghApi('');
+    el.style.color='#4a6a4a';el.textContent=`✓ Verbonden met ${r.full_name} — uploaden werkt!`;
+  }catch(e){
+    el.style.color='#933';el.textContent=`✗ Fout: ${e.message}`;
+  }
+}
 
 // Auto-open admin via ?admin or #admin in URL
 checkSavedLogin();
 if(location.search.includes('admin')||location.hash.includes('admin')){triggerAdmin();}
 
 function statText(m){if(!m)return{t:'Geen media',has:false};const map={photo:'📷 Foto',audio:'🎵 Audio',mp4:'🎬 Video (bestand)',youtube:'▶ YouTube'};return{t:map[m.type]||'–',has:true};}
+function updateGhStatus(){
+  const el=document.getElementById('ghStatus');if(!el)return;
+  if(ghConfigured()){
+    el.style.color='#4a6a4a';
+    el.innerHTML=`✓ GitHub verbonden: <strong>${ghSettings.owner}/${ghSettings.repo}</strong> (${ghSettings.branch}). Upload bestanden direct vanuit de admin.`;
+  }else{
+    el.style.color='#875020';
+    el.innerHTML=`⚠ Stel hieronder GitHub in om bestanden te kunnen uploaden. Zonder GitHub-koppeling werkt uploaden niet.`;
+  }
+}
 function buildGrid(){
+  // GitHub settings section
+  const ghSection=`<div class="roomSec"><h3><span class="rDot" style="background:#6e5494"></span>GITHUB KOPPELING</h3>
+    <div style="padding:.5rem 0;font-size:.56rem;color:#6a5a8a;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
+      Koppel je GitHub repo zodat uploads direct zichtbaar zijn voor alle bezoekers.<br>
+      Maak een <a href="https://github.com/settings/tokens/new?scopes=repo&description=Driekamers+CMS" target="_blank" style="color:#9a8abf;border-bottom:1px solid rgba(154,138,191,.3)">Personal Access Token</a> aan met <code style="background:#111;padding:1px 5px">repo</code> rechten.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem">
+      <div><label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#6a5a8a;margin-bottom:.25rem">EIGENAAR (owner)</label>
+        <input type="text" id="ghOwner" value="${ghSettings.owner}" placeholder="knmlnr-commits" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none"></div>
+      <div><label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#6a5a8a;margin-bottom:.25rem">REPOSITORY</label>
+        <input type="text" id="ghRepo" value="${ghSettings.repo}" placeholder="driekamers" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none"></div>
+    </div>
+    <div style="margin-bottom:.6rem"><label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#6a5a8a;margin-bottom:.25rem">BRANCH</label>
+      <input type="text" id="ghBranch" value="${ghSettings.branch||'main'}" placeholder="main" style="width:200px;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none"></div>
+    <div style="margin-bottom:.6rem"><label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#6a5a8a;margin-bottom:.25rem">PERSONAL ACCESS TOKEN</label>
+      <input type="password" id="ghToken" value="${ghSettings.token}" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none"></div>
+    <div style="display:flex;gap:.5rem">
+      <button class="abtn pri" onclick="saveGhAdmin()">GITHUB OPSLAAN</button>
+      <button class="abtn" onclick="testGhConnection()">TEST VERBINDING</button>
+    </div>
+    <div id="ghTestResult" style="font-size:.58rem;margin-top:.4rem;min-height:1em;letter-spacing:.12em"></div>
+  </div>`;
   const rooms=[
     {name:'KAMER I — DE NIEUWSKAMER',col:'#b8960a',keys:['r1_L1','r1_L2','r1_L3','r1_R1','r1_R2','r1_R3']},
     {name:'KAMER II — DE TWIJFELKAMER',col:'#3a6e2a',keys:['r2_L1','r2_L2','r2_L3','r2_R1','r2_R2','r2_R3']},
@@ -874,14 +923,65 @@ function buildGrid(){
     </div>`).join('')}
     <button class="abtn pri" onclick="saveConceptAdmin()" style="margin-top:.3rem">CONCEPT TEKSTEN OPSLAAN</button>
   </div>`;
-  document.getElementById('adminGrid').innerHTML=spotifySection+conceptSection+rooms.map(r=>`
+  document.getElementById('adminGrid').innerHTML=ghSection+spotifySection+conceptSection+rooms.map(r=>`
     <div class="roomSec"><h3><span class="rDot" style="background:${r.col}"></span>${r.name}</h3>
     <div class="pGrid">${r.keys.map(k=>{const s=statText(MEDIA[k]);return`<div class="pCard"><div class="pKey">${k}</div><div class="pStat ${s.has?'has':''}">${s.t}</div><button class="abtn" style="font-size:.56rem" onclick="openEdit('${k}')">✎ BEWERKEN</button></div>`;}).join('')}</div></div>
   `).join('');
 }
 
+// ── GITHUB API ────────────────────────────────────────────────────
+// Upload files directly to the GitHub repo so they're visible to all visitors.
+const GH_SETTINGS_KEY='gh_settings';
+let ghSettings={owner:'',repo:'',token:'',branch:'main'};
+function loadGhSettings(){try{const s=localStorage.getItem(GH_SETTINGS_KEY);if(s)Object.assign(ghSettings,JSON.parse(s));}catch(e){}}
+function saveGhSettings(){try{localStorage.setItem(GH_SETTINGS_KEY,JSON.stringify(ghSettings));}catch(e){}}
+loadGhSettings();
+
+function ghConfigured(){return ghSettings.owner&&ghSettings.repo&&ghSettings.token;}
+
+async function ghApi(path,opts={}){
+  const url=`https://api.github.com/repos/${ghSettings.owner}/${ghSettings.repo}${path}`;
+  const resp=await fetch(url,{
+    ...opts,
+    headers:{'Authorization':`token ${ghSettings.token}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json',...(opts.headers||{})},
+  });
+  if(!resp.ok){const e=await resp.text();throw new Error(`GitHub API ${resp.status}: ${e}`);}
+  return resp.json();
+}
+
+// Get file SHA (needed for updating existing files)
+async function ghGetSha(path){
+  try{const r=await ghApi(`/contents/${path}?ref=${ghSettings.branch}`);return r.sha;}catch(e){return null;}
+}
+
+// Upload a file to the repo
+async function ghUploadFile(path,contentBase64,message){
+  const sha=await ghGetSha(path);
+  const body={message,content:contentBase64,branch:ghSettings.branch};
+  if(sha)body.sha=sha;
+  return ghApi(`/contents/${path}`,{method:'PUT',body:JSON.stringify(body)});
+}
+
+// Convert File to base64 (without the data:... prefix)
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// Save media-config.json to GitHub
+async function saveConfigToGitHub(){
+  const cfg=buildConfig();
+  const json=JSON.stringify(cfg,null,2);
+  const b64=btoa(unescape(encodeURIComponent(json)));
+  await ghUploadFile('media-config.json',b64,'Update media-config.json via admin');
+}
+
 // ── EDIT MODAL ────────────────────────────────────────────────────
-let _pendingFile=null; // holds file selected by user until save
+let _pendingFile=null;
 function openEdit(key){
   editingKey=key;_pendingFile=null;
   document.getElementById('eTitle').textContent=PLABELS[key]||key;
@@ -903,34 +1003,23 @@ function renderFields(){
   if(curEditType==='none'){f.innerHTML=`<p style="font-size:.66rem;color:#3a3a3a;letter-spacing:.14em;padding:.4rem 0">Geen media voor dit schilderij.</p>`;return;}
   if(curEditType==='photo'){
     f.innerHTML=`
-      <div class="eField"><label>Bestand uploaden</label>
-        <label class="fLabel"><input type="file" id="fi" accept="image/*" onchange="handleFileSelect(this)"><span id="fs">Klik om foto te kiezen…</span></label>
-        <div id="prevArea"></div>
-        <p class="wTxt">Het bestand wordt automatisch gedownload naar je computer. Zet het in de <code style="background:#111;padding:1px 5px">media/</code> map van je GitHub repo.</p></div>
-      <div class="eField"><label>Of typ een pad (als het bestand al in je repo staat)</label>
-        <input type="text" id="pi" placeholder="media/foto.jpg" value="${cur?.src||''}">
-      </div>
+      <div class="eField"><label>Kies een foto</label>
+        <label class="fLabel"><input type="file" id="fi" accept="image/*" onchange="handleFileSelect(this)"><span id="fs">${cur?.src?'✓ '+cur.src:'Klik om foto te kiezen…'}</span></label>
+        <div id="prevArea">${cur?.src?`<img class="prevImg" src="${cur.src}">`:''}
+        </div></div>
       <div class="eField"><label>Bijschrift (optioneel)</label><input type="text" id="ci" placeholder="Tekst onder de foto" value="${cur?.caption||''}"></div>`;
-    if(cur?.src){document.getElementById('pi').value=cur.src;}
   }else if(curEditType==='audio'){
     f.innerHTML=`
-      <div class="eField"><label>Bestand uploaden</label>
-        <label class="fLabel"><input type="file" id="fi" accept="audio/*" onchange="handleFileSelect(this)"><span id="fs">Klik om audiobestand te kiezen…</span></label>
-        <div id="prevArea"></div>
-        <p class="wTxt">MP3, WAV, OGG ondersteund. Bestand wordt automatisch gedownload.</p></div>
-      <div class="eField"><label>Of typ een pad</label>
-        <input type="text" id="pi" placeholder="media/geluid.mp3" value="${cur?.src||''}">
-      </div>
+      <div class="eField"><label>Kies een audiobestand</label>
+        <label class="fLabel"><input type="file" id="fi" accept="audio/*" onchange="handleFileSelect(this)"><span id="fs">${cur?.src?'✓ '+cur.src:'Klik om audiobestand te kiezen…'}</span></label>
+        <div id="prevArea"></div></div>
       <div class="eField"><label>Omschrijving / naam</label><input type="text" id="li" placeholder="bijv. Nieuwsuitzending 1984" value="${cur?.label||''}"></div>`;
   }else if(curEditType==='mp4'){
     f.innerHTML=`
-      <div class="eField"><label>Bestand uploaden</label>
-        <label class="fLabel"><input type="file" id="fi" accept="video/mp4,video/*" onchange="handleFileSelect(this)"><span id="fs">Klik om video te kiezen…</span></label>
+      <div class="eField"><label>Kies een video</label>
+        <label class="fLabel"><input type="file" id="fi" accept="video/mp4,video/*" onchange="handleFileSelect(this)"><span id="fs">${cur?.src?'✓ '+cur.src:'Klik om video te kiezen…'}</span></label>
         <div id="prevArea"></div>
-        <p class="wTxt">Bestand wordt automatisch gedownload. Gebruik YouTube voor bestanden groter dan 100 MB.</p></div>
-      <div class="eField"><label>Of typ een pad</label>
-        <input type="text" id="pi" placeholder="media/film.mp4" value="${cur?.src||''}">
-      </div>`;
+        <p class="wTxt">Gebruik YouTube voor bestanden groter dan 100 MB.</p></div>`;
   }else if(curEditType==='youtube'){
     f.innerHTML=`<div class="eField"><label>YouTube URL</label><input type="text" id="ui" placeholder="https://youtu.be/..." value="${cur?.original||''}"><p class="wTxt" style="color:#445">Bijv: https://youtu.be/dQw4w9WgXcQ of https://youtube.com/watch?v=...</p></div>`;
   }
@@ -940,81 +1029,40 @@ function handleFileSelect(input){
   const file=input.files[0];if(!file)return;
   _pendingFile=file;
   document.getElementById('fs').textContent=`✓ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
-  // Show preview
   const area=document.getElementById('prevArea');if(!area)return;
   const url=URL.createObjectURL(file);
   if(file.type.startsWith('image/')){area.innerHTML=`<img class="prevImg" src="${url}">`;}
   else if(file.type.startsWith('audio/')){area.innerHTML=`<audio class="prevAud" controls src="${url}"></audio>`;}
   else if(file.type.startsWith('video/')){area.innerHTML=`<video style="max-width:100%;max-height:120px;margin-top:.5rem;opacity:.8" controls src="${url}"></video>`;}
-  // Auto-fill the path field
-  const pi=document.getElementById('pi');
-  if(pi)pi.value=`media/${file.name}`;
 }
 
-function downloadFile(file,filename){
-  const url=URL.createObjectURL(file);
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
-  URL.revokeObjectURL(url);
-}
-
-// Storage (simplified — only for Spotify/concept text, not media files)
-const memStore={};
-const IDB={
-  _db:null,
-  open(){
-    if(this._db)return Promise.resolve(this._db);
-    return new Promise((res,rej)=>{
-      const req=indexedDB.open('DKvW_media',1);
-      req.onupgradeneeded=e=>e.target.result.createObjectStore('kv');
-      req.onsuccess=e=>{this._db=e.target.result;res(this._db);};
-      req.onerror=()=>rej(req.error);
-    });
-  },
-  async set(k,v){const db=await this.open();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res(true);tx.onerror=()=>rej(tx.error);});},
-  async get(k){const db=await this.open();return new Promise((res,rej)=>{const req=db.transaction('kv').objectStore('kv').get(k);req.onsuccess=()=>res(req.result??null);req.onerror=()=>rej(req.error);});},
-  async delete(k){const db=await this.open();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=()=>res(true);tx.onerror=()=>rej(tx.error);});},
-};
+// Storage (for Spotify/concept text local cache)
 const safeStore={
-  async set(k,v){
-    try{if(window.storage){await window.storage.set(k,v);}}catch(e){}
-    try{await IDB.set(k,v);return true;}catch(e){}
-    memStore[k]=v;return false;
-  },
-  async get(k){
-    try{if(window.storage){const r=await window.storage.get(k);if(r)return r;}}catch(e){}
-    try{const v=await IDB.get(k);if(v!==null&&v!==undefined)return{value:v};}catch(e){}
-    return memStore[k]?{value:memStore[k]}:null;
-  },
-  async delete(k){
-    try{if(window.storage)await window.storage.delete(k);}catch(e){}
-    try{await IDB.delete(k);}catch(e){}
-    delete memStore[k];
-  },
+  async set(k,v){try{localStorage.setItem('dkw_'+k,v);return true;}catch(e){return false;}},
+  async get(k){try{const v=localStorage.getItem('dkw_'+k);return v?{value:v}:null;}catch(e){return null;}},
+  async delete(k){try{localStorage.removeItem('dkw_'+k);}catch(e){}},
 };
 
 async function saveEdit(){
   const prog=document.getElementById('eProg');prog.textContent='';
   if(curEditType==='none'){await clearEdit();return;}
+  if(!ghConfigured()){prog.textContent='❌ Stel eerst GitHub in (bovenaan admin panel)';return;}
+
   let newMedia=null;
+  const filePath=_pendingFile?`media/${_pendingFile.name}`:null;
+
   if(curEditType==='photo'){
-    const pathVal=(document.getElementById('pi')?.value||'').trim();
-    if(_pendingFile){
-      // Download the file so user can put it in the repo
-      downloadFile(_pendingFile,_pendingFile.name);
-      prog.textContent=`⬇ ${_pendingFile.name} gedownload — zet in media/ map van je repo`;
-    }
-    if(!pathVal){prog.textContent='❌ Geen bestand gekozen of pad ingevuld';return;}
-    newMedia={type:'photo',src:pathVal,caption:document.getElementById('ci')?.value||''};
+    if(!_pendingFile&&!MEDIA[editingKey]?.src){prog.textContent='❌ Geen foto gekozen';return;}
+    const src=filePath||MEDIA[editingKey]?.src;
+    newMedia={type:'photo',src,caption:document.getElementById('ci')?.value||''};
   }else if(curEditType==='audio'){
-    const pathVal=(document.getElementById('pi')?.value||'').trim();
-    if(_pendingFile){downloadFile(_pendingFile,_pendingFile.name);}
-    if(!pathVal){prog.textContent='❌ Geen bestand gekozen of pad ingevuld';return;}
-    newMedia={type:'audio',src:pathVal,label:document.getElementById('li')?.value||''};
+    if(!_pendingFile&&!MEDIA[editingKey]?.src){prog.textContent='❌ Geen audiobestand gekozen';return;}
+    const src=filePath||MEDIA[editingKey]?.src;
+    newMedia={type:'audio',src,label:document.getElementById('li')?.value||''};
   }else if(curEditType==='mp4'){
-    const pathVal=(document.getElementById('pi')?.value||'').trim();
-    if(_pendingFile){downloadFile(_pendingFile,_pendingFile.name);}
-    if(!pathVal){prog.textContent='❌ Geen bestand gekozen of pad ingevuld';return;}
-    newMedia={type:'mp4',src:pathVal};
+    if(!_pendingFile&&!MEDIA[editingKey]?.src){prog.textContent='❌ Geen video gekozen';return;}
+    const src=filePath||MEDIA[editingKey]?.src;
+    newMedia={type:'mp4',src};
   }else if(curEditType==='youtube'){
     const url=(document.getElementById('ui')?.value||'').trim();
     const yt=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?#\s]+)/)||url.match(/^([A-Za-z0-9_\-]{11})$/);
@@ -1023,15 +1071,30 @@ async function saveEdit(){
     const original=url.includes('youtu')?url:`https://youtu.be/${ytId}`;
     newMedia={type:'youtube',ytId,start:ts?ts[1]:0,original};
   }
-  // Apply to memory + scene
-  MEDIA[editingKey]=newMedia;refreshPainting(editingKey);
-  // Auto-download updated media-config.json
-  autoSaveConfig();
-  _pendingFile=null;
-  prog.textContent=prog.textContent||'✅ Opgeslagen — media-config.json gedownload';
-  if(_pendingFile)prog.textContent+=` + ${_pendingFile.name}`;
-  showToast('Opgeslagen! Zet gedownloade bestanden in je GitHub repo.');
-  setTimeout(()=>{closeEdit();buildGrid();},1800);
+
+  try{
+    // Upload file to GitHub if selected
+    if(_pendingFile){
+      prog.textContent=`⬆ ${_pendingFile.name} uploaden naar GitHub…`;
+      const b64=await fileToBase64(_pendingFile);
+      await ghUploadFile(filePath,b64,`Upload ${_pendingFile.name}`);
+    }
+
+    // Update memory
+    MEDIA[editingKey]=newMedia;refreshPainting(editingKey);
+
+    // Save config to GitHub
+    prog.textContent='⬆ media-config.json bijwerken…';
+    await saveConfigToGitHub();
+
+    _pendingFile=null;
+    prog.textContent='✅ Opgeslagen! Zichtbaar voor alle bezoekers.';
+    showToast('Opgeslagen op GitHub!');
+    setTimeout(()=>{closeEdit();buildGrid();},1200);
+  }catch(e){
+    console.error(e);
+    prog.textContent=`❌ Upload mislukt: ${e.message}`;
+  }
 }
 
 function buildConfig(){
@@ -1046,31 +1109,29 @@ function downloadConfig(){
   const cfg=buildConfig();
   const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
-  showToast('Download gestart — upload naar GitHub repo root');
-}
-function autoSaveConfig(){
-  // Automatisch media-config.json downloaden zodat het gecommit kan worden
-  const cfg=buildConfig();
-  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
+  showToast('Download gestart');
 }
 async function saveSpotifyAdmin(){
   for(let i=0;i<3;i++){const v=(document.getElementById(`spotIn${i}`)?.value||'').trim();SPOTIFY_URLS[i]=v;}
   await saveSpotifyUrls();
-  autoSaveConfig();
-  showToast('Spotify-links opgeslagen — media-config.json gedownload, commit naar GitHub voor alle browsers');
+  if(ghConfigured()){
+    try{await saveConfigToGitHub();showToast('Spotify-links opgeslagen op GitHub!');}
+    catch(e){showToast('❌ GitHub opslaan mislukt: '+e.message);}
+  }else{showToast('Spotify-links lokaal opgeslagen. Stel GitHub in om voor iedereen zichtbaar te maken.');}
   buildGrid();
 }
 async function saveConceptAdmin(){
   const fields=['hero_sub','hero_title','hero_text','step1_title','step1_text','step2_title','step2_text','step3_title','step3_text','step4_title','step4_text','step5_title','step5_text','step6_title','step6_text','step7_title','step7_text','verdict_text','verdict_quote','verdict_author','footer_text'];
   fields.forEach(k=>{const el=document.getElementById(`cms_${k}`);if(el){const v=el.value.trim();if(v)CONCEPT_TEXTS[k]=v;else delete CONCEPT_TEXTS[k];}});
   await saveConceptTexts();
-  autoSaveConfig();
-  showToast('Concept teksten opgeslagen — media-config.json gedownload, commit naar GitHub voor alle browsers');
+  if(ghConfigured()){
+    try{await saveConfigToGitHub();showToast('Concept teksten opgeslagen op GitHub!');}
+    catch(e){showToast('❌ GitHub opslaan mislukt: '+e.message);}
+  }else{showToast('Concept teksten lokaal opgeslagen. Stel GitHub in om voor iedereen zichtbaar te maken.');}
 }
 async function clearEdit(){
   MEDIA[editingKey]=null;refreshPainting(editingKey);
-  autoSaveConfig();
+  if(ghConfigured()){try{await saveConfigToGitHub();}catch(e){}}
   closeEdit();buildGrid();
 }
 
