@@ -444,6 +444,16 @@ function advance(){document.getElementById('proceed').classList.remove('show');c
 function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
 document.getElementById('startBtn').onclick=()=>{initAudio();const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';walking=true;};
 
+// ── LOAD CONFIG ──────────────────────────────────────────────────
+async function loadConfig(){
+  try{
+    const resp=await fetch('media-config.json');
+    if(!resp.ok)return;
+    const cfg=await resp.json();
+    MKEYS.forEach(k=>{if(cfg[k])MEDIA[k]=cfg[k];});
+  }catch(e){}
+}
+
 // ── ADMIN ─────────────────────────────────────────────────────────
 const ADMIN_PWD='Tijn2026!';
 let adminLoggedIn=false,editingKey=null,curEditType='none';
@@ -624,19 +634,25 @@ async function saveEdit(){
   if(curEditType==='none'){await clearEdit();return;}
   let newMedia=null;
   if(curEditType==='photo'){
-    const file=document.getElementById('fi')?.files[0];let src=MEDIA[editingKey]?.type==='photo'?MEDIA[editingKey].src:null;
-    if(file){  if(file.size>MAX){prog.textContent=`❌ Te groot (${(file.size/1024/1024).toFixed(1)} MB). Max 25 MB`;return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    if(!src){prog.textContent='❌ Geen foto gekozen';return;}
+    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
+    let src=MEDIA[editingKey]?.type==='photo'?MEDIA[editingKey].src:null;
+    if(file){if(file.size>MAX){prog.textContent=`❌ Te groot (${(file.size/1024/1024).toFixed(1)} MB). Max 25 MB`;return;}prog.textContent='Laden…';src=await fileToB64(file);}
+    else if(pathVal){src=pathVal;}
+    if(!src){prog.textContent='❌ Geen foto gekozen of pad ingevuld';return;}
     newMedia={type:'photo',src,caption:document.getElementById('ci')?.value||''};
   }else if(curEditType==='audio'){
-    const file=document.getElementById('fi')?.files[0];let src=MEDIA[editingKey]?.type==='audio'?MEDIA[editingKey].src:null;
+    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
+    let src=MEDIA[editingKey]?.type==='audio'?MEDIA[editingKey].src:null;
     if(file){if(file.size>MAX){prog.textContent=`❌ Te groot. Max 25 MB`;return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    if(!src){prog.textContent='❌ Geen audiobestand gekozen';return;}
+    else if(pathVal){src=pathVal;}
+    if(!src){prog.textContent='❌ Geen audiobestand gekozen of pad ingevuld';return;}
     newMedia={type:'audio',src,label:document.getElementById('li')?.value||''};
   }else if(curEditType==='mp4'){
-    const file=document.getElementById('fi')?.files[0];let src=MEDIA[editingKey]?.type==='mp4'?MEDIA[editingKey].src:null;
+    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
+    let src=MEDIA[editingKey]?.type==='mp4'?MEDIA[editingKey].src:null;
     if(file){if(file.size>MAX){prog.textContent='❌ Te groot (max 25 MB). Gebruik YouTube voor grotere video\'s.';return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    if(!src){prog.textContent='❌ Geen videobestand gekozen';return;}
+    else if(pathVal){src=pathVal;}
+    if(!src){prog.textContent='❌ Geen videobestand gekozen of pad ingevuld';return;}
     newMedia={type:'mp4',src};
   }else if(curEditType==='youtube'){
     const url=(document.getElementById('ui')?.value||'').trim();
@@ -674,8 +690,9 @@ async function clearEdit(){
   closeEdit();buildGrid();
 }
 
-// ── ASYNC INIT (load storage → build scene) ───────────────────────
+// ── ASYNC INIT (load config + storage → build scene) ────────────
 (async()=>{
+  await loadConfig();
   for(const key of MKEYS){
     const r=await safeStore.get(`painting:${key}`);
     if(r)try{MEDIA[key]=JSON.parse(r.value);}catch(e){}
