@@ -162,7 +162,7 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
         <h2>MEDIA BEHEER</h2>
         <div style="display:flex;gap:.5rem">
           <button class="abtn pri" onclick="downloadConfig()" title="Download en zet op GitHub zodat alle machines de media zien">⬇ DOWNLOAD media-config.json</button>
-          <button class="abtn" onclick="closeAdmin()">✕ SLUITEN</button>
+          <button class="abtn" onclick="reloadConfig()" title="Herlaad media-config.json van server">↺ HERLAAD</button>
         </div>
       </div>
       <div style="padding:.6rem 1.4rem;background:#050505;border-bottom:1px solid #111;font-size:.56rem;letter-spacing:.14em;color:#4a6a4a;line-height:1.8">
@@ -452,6 +452,13 @@ function triggerAdmin(){
   document.getElementById('adminOverlay').style.display='flex';
   if(adminLoggedIn){showPanel();}
   else{document.getElementById('loginSection').style.display='flex';document.getElementById('panelSection').style.display='none';setTimeout(()=>document.getElementById('pwdInput').focus(),80);}
+}
+async function reloadConfig(){
+  const btn=document.querySelector('[onclick="reloadConfig()"]');
+  if(btn)btn.textContent='⏳ Laden…';
+  await loadConfig();
+  buildGrid();
+  if(btn)btn.textContent='↺ HERLAAD';
 }
 function checkPwd(){
   if(document.getElementById('pwdInput').value===ADMIN_PWD){adminLoggedIn=true;showPanel();}
