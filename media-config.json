@@ -12,5 +12,10 @@
   "r1_L3": {
     "type": "mp4",
     "src": "media/1links3.mp4"
+  },
+  "r2_L1": {
+    "type": "photo",
+    "src": "media/Cees Molenaar en Ria tijdens het trouwen van janny.jpg",
+    "caption": "KEES"
   }
 }
