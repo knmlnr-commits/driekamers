@@ -47,8 +47,7 @@
     "caption": ""
   },
   "r2_R2": {
-    "type": "photo",
-    "src": "media/Bart.jpg",
-    "caption": "PAAAA"
+    "type": "mp4",
+    "src": "media/oli.mov"
   }
 }
