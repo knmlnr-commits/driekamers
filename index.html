@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <title>Drie Kamers van Werkelijkheid</title>
+<link href="https://cdn.quilljs.com/1.3.7/quill.bubble.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <style>
+/* Quill WYSIWYG overrides for dark admin theme */
+.ql-container.ql-bubble{font-family:Georgia,serif;font-size:.72rem;color:#bbb;line-height:1.6}
+.ql-editor{padding:.45rem .65rem;min-height:6rem;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444}
+.ql-editor.ql-blank::before{color:#555;font-style:normal}
+.ql-editor p{margin-bottom:.5em}
+.ql-tooltip{z-index:99999}
+.ql-bubble .ql-toolbar .ql-formats{margin-right:8px}
+.ql-bubble .ql-tooltip{background:#1a1a1a;border:1px solid #333;border-radius:4px}
+.ql-bubble .ql-tooltip .ql-toolbar button{color:#bbb}
+.ql-bubble .ql-tooltip .ql-toolbar button:hover,.ql-bubble .ql-tooltip .ql-toolbar button.ql-active{color:#e8d090}
+.ql-bubble .ql-tooltip .ql-toolbar .ql-stroke{stroke:#bbb}
+.ql-bubble .ql-tooltip .ql-toolbar button:hover .ql-stroke,.ql-bubble .ql-tooltip .ql-toolbar button.ql-active .ql-stroke{stroke:#e8d090}
+.ql-bubble .ql-tooltip .ql-toolbar .ql-fill{fill:#bbb}
+.ql-bubble .ql-tooltip .ql-toolbar button:hover .ql-fill,.ql-bubble .ql-tooltip .ql-toolbar button.ql-active .ql-fill{fill:#e8d090}
+.cms-wysiwyg-wrap{margin-bottom:.8rem}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
 #intro{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:50;transition:opacity 1.4s}
@@ -193,7 +210,6 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
       <div class="aHdr">
         <h2>MEDIA BEHEER</h2>
         <div style="display:flex;gap:.5rem">
-          <button class="abtn pri" onclick="downloadConfig()" title="Download en zet op GitHub zodat alle machines de media zien">⬇ DOWNLOAD media-config.json</button>
           <button class="abtn" onclick="reloadConfig()" title="Herlaad media-config.json van server">↺ HERLAAD</button>
         </div>
       </div>
@@ -937,12 +953,12 @@ function buildGrid(){
   const conceptSection=`<div class="roomSec"><h3><span class="rDot" style="background:#e8d090"></span>CONCEPT PAGINA — TEKSTEN</h3>
     <div style="padding:.5rem 0;font-size:.56rem;color:#6a6040;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
       Pas de teksten van de concept-pagina aan. Laat een veld leeg om de standaardtekst te gebruiken.<br>
-      Gebruik <code style="background:#111;padding:1px 5px">&lt;em&gt;tekst&lt;/em&gt;</code> voor cursief en <code style="background:#111;padding:1px 5px">&lt;strong&gt;tekst&lt;/strong&gt;</code> voor vet.
+      Selecteer tekst om opmaak toe te passen (vet, cursief, etc.).
     </div>
-    ${conceptFields.map(f=>{const val=CONCEPT_TEXTS[f.key]||CONCEPT_DEFAULTS[f.key]||'';const esc=val.replace(/</g,'&lt;').replace(/>/g,'&gt;');const escAttr=val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return`<div style="margin-bottom:.8rem">
+    ${conceptFields.map(f=>{const val=CONCEPT_TEXTS[f.key]||CONCEPT_DEFAULTS[f.key]||'';const escAttr=val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return`<div class="cms-wysiwyg-wrap">
       <label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#8a7a50;margin-bottom:.25rem">${f.label}</label>
       ${f.multi
-        ?`<textarea id="cms_${f.key}" rows="6" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none;resize:vertical;line-height:1.6">${esc}</textarea>`
+        ?`<div id="cms_${f.key}" class="cms-quill"></div>`
         :`<input type="text" id="cms_${f.key}" value="${escAttr}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none">`
       }
     </div>`;}).join('')}
@@ -952,6 +968,19 @@ function buildGrid(){
     <div class="roomSec"><h3><span class="rDot" style="background:${r.col}"></span>${r.name}</h3>
     <div class="pGrid">${r.keys.map(k=>{const s=statText(MEDIA[k]);return`<div class="pCard"><div class="pKey">${k}</div><div class="pStat ${s.has?'has':''}">${s.t}</div><button class="abtn" style="font-size:.56rem" onclick="openEdit('${k}')">✎ BEWERKEN</button></div>`;}).join('')}</div></div>
   `).join('');
+  // Initialize Quill WYSIWYG editors for multi-line concept fields
+  if(typeof Quill!=='undefined'){
+    window._cmsQuills={};
+    conceptFields.filter(f=>f.multi).forEach(f=>{
+      const el=document.getElementById(`cms_${f.key}`);
+      if(!el)return;
+      const val=CONCEPT_TEXTS[f.key]||CONCEPT_DEFAULTS[f.key]||'';
+      const q=new Quill(el,{theme:'bubble',modules:{toolbar:[['bold','italic','underline'],['blockquote'],['clean']]},placeholder:'Typ hier...'});
+      // Set HTML content
+      q.root.innerHTML=val;
+      window._cmsQuills[f.key]=q;
+    });
+  }
 }
 
 // ── GITHUB API ────────────────────────────────────────────────────
@@ -1176,12 +1205,6 @@ function buildConfig(){
   if(Object.keys(CONCEPT_TEXTS).length)cfg._concept=CONCEPT_TEXTS;
   return cfg;
 }
-function downloadConfig(){
-  const cfg=buildConfig();
-  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
-  showToast('Download gestart');
-}
 async function saveSpotifyAdmin(){
   for(let i=0;i<3;i++){const v=(document.getElementById(`spotIn${i}`)?.value||'').trim();SPOTIFY_URLS[i]=v;}
   await saveSpotifyUrls();
@@ -1193,7 +1216,15 @@ async function saveSpotifyAdmin(){
 }
 async function saveConceptAdmin(){
   const fields=['hero_sub','hero_title','hero_text','step1_title','step1_text','step2_title','step2_text','step3_title','step3_text','step4_title','step4_text','step5_title','step5_text','step6_title','step6_text','step7_title','step7_text','verdict_text','verdict_quote','verdict_author','footer_text'];
-  fields.forEach(k=>{const el=document.getElementById(`cms_${k}`);if(el){const v=el.value.trim();if(v)CONCEPT_TEXTS[k]=v;else delete CONCEPT_TEXTS[k];}});
+  fields.forEach(k=>{
+    // Read from Quill editor if available, otherwise from input
+    if(window._cmsQuills&&window._cmsQuills[k]){
+      const html=window._cmsQuills[k].root.innerHTML.trim();
+      if(html&&html!=='<p><br></p>')CONCEPT_TEXTS[k]=html;else delete CONCEPT_TEXTS[k];
+    }else{
+      const el=document.getElementById(`cms_${k}`);if(el){const v=el.value.trim();if(v)CONCEPT_TEXTS[k]=v;else delete CONCEPT_TEXTS[k];}
+    }
+  });
   await saveConceptTexts();
   if(ghConfigured()){
     try{await saveConfigToGitHub();showToast('Concept teksten opgeslagen op GitHub!');}
