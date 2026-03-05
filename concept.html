@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept Ontwikkeling — Drie Kamers van Werkelijkheid</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050505;font-family:'Georgia',serif;color:#c0b8a8;line-height:1.9;overflow-x:hidden}
+a{color:#e8d090;text-decoration:none;border-bottom:1px solid rgba(232,208,144,.2);transition:all .3s}
+a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
+
+/* Navigation */
+.topbar{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:.8rem 2rem;background:rgba(5,5,5,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.04);z-index:100}
+.topbar-title{font-size:.52rem;letter-spacing:.4em;color:rgba(255,255,255,.2);text-transform:uppercase}
+.topbar-back{font-size:.56rem;letter-spacing:.22em;color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);padding:.35rem 1rem;transition:all .3s;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}
+.topbar-back:hover{color:#e8d090;border-color:rgba(232,208,144,.3)}
+
+/* Hero */
+.hero{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(232,208,144,.04) 0%,transparent 70%)}
+.hero h1{font-size:clamp(1.8rem,4vw,3rem);letter-spacing:.08em;color:#e8d090;margin-bottom:1rem;position:relative}
+.hero .sub{font-size:.72rem;letter-spacing:.35em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:2rem}
+.hero p{max-width:560px;color:#7a7060;font-size:.88rem;line-height:2}
+
+/* Timeline */
+.timeline{max-width:720px;margin:0 auto;padding:2rem 2rem 6rem;position:relative}
+.timeline::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,rgba(232,208,144,.12) 10%,rgba(232,208,144,.12) 90%,transparent)}
+
+.step{position:relative;padding-left:72px;margin-bottom:3.5rem;opacity:0;transform:translateY(24px);animation:fadeInStep .8s ease forwards}
+.step:nth-child(1){animation-delay:.1s}
+.step:nth-child(2){animation-delay:.25s}
+.step:nth-child(3){animation-delay:.4s}
+.step:nth-child(4){animation-delay:.55s}
+.step:nth-child(5){animation-delay:.7s}
+.step:nth-child(6){animation-delay:.85s}
+.step:nth-child(7){animation-delay:1s}
+
+@keyframes fadeInStep{to{opacity:1;transform:translateY(0)}}
+
+.step-num{position:absolute;left:14px;top:.1rem;width:28px;height:28px;border-radius:50%;border:1px solid rgba(232,208,144,.25);display:flex;align-items:center;justify-content:center;font-size:.52rem;letter-spacing:.1em;color:rgba(232,208,144,.5);background:rgba(5,5,5,.9)}
+.step h2{font-size:1rem;letter-spacing:.06em;color:#d4c090;margin-bottom:.6rem;line-height:1.4}
+.step p{color:#8a8070;font-size:.82rem;line-height:2;margin-bottom:.5rem}
+.step .highlight{color:#b8a878;font-style:italic}
+.step .tag{display:inline-block;font-size:.48rem;letter-spacing:.22em;text-transform:uppercase;padding:.2rem .6rem;border:1px solid rgba(232,208,144,.12);color:rgba(232,208,144,.35);margin-top:.4rem;margin-right:.3rem}
+
+/* Tool cards */
+.tool-card{background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);padding:1.2rem 1.4rem;margin:.8rem 0;border-radius:2px}
+.tool-card .name{font-size:.56rem;letter-spacing:.3em;color:rgba(232,208,144,.4);text-transform:uppercase;margin-bottom:.4rem}
+.tool-card p{color:#7a7060;font-size:.78rem}
+
+/* Verdict */
+.verdict{background:rgba(232,208,144,.02);border:1px solid rgba(232,208,144,.08);padding:2rem;margin:1rem 0;text-align:center}
+.verdict p{color:#c0a878;font-size:.92rem;line-height:2}
+.verdict .big{font-size:1.1rem;color:#e8d090;letter-spacing:.04em;margin-top:.5rem}
+
+/* Footer */
+.footer{text-align:center;padding:3rem 2rem;border-top:1px solid rgba(255,255,255,.03)}
+.footer p{font-size:.52rem;letter-spacing:.3em;color:rgba(255,255,255,.12);text-transform:uppercase}
+
+/* Room indicators */
+.room-ind{display:inline-flex;align-items:center;gap:.4rem;margin:.15rem 0}
+.room-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* Responsive */
+@media(max-width:600px){
+  .topbar{padding:.6rem 1rem}
+  .hero{padding:5rem 1.2rem 3rem}
+  .timeline{padding:2rem 1rem 4rem}
+  .step{padding-left:56px}
+  .timeline::before{left:20px}
+  .step-num{left:6px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Concept Ontwikkeling</span>
+  <a href="index.html" class="topbar-back">&#8592; TERUG NAAR KAMERS</a>
+</div>
+
+<div class="hero">
+  <div class="sub">Tijn Molenaar &middot; KuBV Masterpiece 2025/2026</div>
+  <h1>Concept Ontwikkeling</h1>
+  <p>Het volledige proces van eerste idee tot digitaal kunstwerk &mdash; hoe observatie, frustratie en technologie samenkwamen in <em>Drie Kamers van Werkelijkheid</em>.</p>
+</div>
+
+<div class="timeline">
+
+  <!-- STAP 1 -->
+  <div class="step">
+    <div class="step-num">01</div>
+    <h2>De observatie &mdash; media om ons heen</h2>
+    <p>Het begon met een simpele vraag: <span class="highlight">hoe consumeren wij eigenlijk nieuws?</span> Dagelijks scrollen we door NOS, BBC, CNN, Instagram-kanalen en TikTok. Iedereen krijgt hetzelfde verhaal &mdash; of juist niet. Dezelfde gebeurtenis, maar met een andere kop, andere framing, andere beelden. De grens tussen objectief nieuws en propaganda vervaagt steeds verder.</p>
+    <p>Deepfakes, AI-gegenereerde beelden, gemanipuleerde video&rsquo;s van conflictgebieden &mdash; het wordt steeds moeilijker om waarheid van leugen te onderscheiden. Dit werd de kern van mijn project.</p>
+    <div class="tag">Onderzoek</div>
+    <div class="tag">Medialandschap</div>
+    <div class="tag">Deepfakes</div>
+  </div>
+
+  <!-- STAP 2 -->
+  <div class="step">
+    <div class="step-num">02</div>
+    <h2>Het concept &mdash; drie kamers, drie werkelijkheden</h2>
+    <p>Ik wilde de kijker <em>meenemen</em> op een reis. Niet vertellen, maar laten ervaren. Zo ontstond het idee van drie kamers die elk een fase van mediamanipulatie vertegenwoordigen:</p>
+    <p>
+      <span class="room-ind"><span class="room-dot" style="background:#d4a820"></span> <strong>Kamer I &mdash; De Nieuwskamer</strong></span><br>
+      Objectief, chique, vertrouwd. Krantenkoppen, nieuwsuitzendingen, persfoto&rsquo;s. Mooie Victoriaanse inrichting, zachte pianomuziek. De kijker voelt zich veilig.
+    </p>
+    <p>
+      <span class="room-ind"><span class="room-dot" style="background:#3a6e2a"></span> <strong>Kamer II &mdash; De Twijfelkamer</strong></span><br>
+      Hier schuurt het. Dezelfde beelden met een andere kop. Nep naast echt. Minimale inrichting, donkere ramen, een eenzame stoel. De zekerheid verdwijnt.
+    </p>
+    <p>
+      <span class="room-ind"><span class="room-dot" style="background:#8a1a1a"></span> <strong>Kamer III &mdash; De Propagandakamer</strong></span><br>
+      Geen meubels, geen ramen. Bloedsporen op de muren. Propaganda, censuur, haatverspreiding. Geluiden door elkaar, versneld &mdash; stress, chaos. Eindigend met een citaat van Hannah Arendt over het gevaar van niet meer nadenken.
+    </p>
+    <div class="tag">Conceptontwerp</div>
+    <div class="tag">Ruimtelijk narratief</div>
+  </div>
+
+  <!-- STAP 3 -->
+  <div class="step">
+    <div class="step-num">03</div>
+    <h2>Poging 1 &mdash; Blender</h2>
+    <p>De eerste aanpak was logisch: <span class="highlight">Blender</span>. Ik begon met het modelleren van een huis met drie ruimtes. Muren, deuren, een dak. Het zag er goed uit als 3D-model.</p>
+    <p>Maar toen kwam het probleem: <strong>hoe maak je het interactief?</strong> Hoe laat je iemand er doorheen lopen? Hoe embed je video&rsquo;s, foto&rsquo;s en geluid? Blender is fantastisch voor renders en animaties, maar voor een interactieve web-ervaring schiet het tekort. Export naar web (via glTF/Three.js) werkte technisch, maar de workflow was onhandig, de bestanden te groot, en de interactiviteit beperkt.</p>
+    <p>Na weken proberen was de conclusie helder: Blender was niet de juiste tool voor dit project.</p>
+    <div class="tool-card">
+      <div class="name">Blender</div>
+      <p>Goed voor: 3D-modellering, renders, animatie. Niet ideaal voor: interactieve web-ervaringen met multimedia-integratie.</p>
+    </div>
+    <div class="tag">Blender</div>
+    <div class="tag">3D-modellering</div>
+    <div class="tag">Obstakel</div>
+  </div>
+
+  <!-- STAP 4 -->
+  <div class="step">
+    <div class="step-num">04</div>
+    <h2>Poging 2 &mdash; Claude Chat</h2>
+    <p>Met het Blender-pad doodgelopen, probeerde ik een andere aanpak: <span class="highlight">AI-assisted development</span>. Via Claude Chat (de chatinterface van Anthropic) beschreef ik mijn concept en vroeg om hulp bij het bouwen van een Three.js-applicatie.</p>
+    <p>Claude Chat begreep het concept goed en kon mooie stukken code genereren. Maar er was een fundamenteel probleem: <strong>het miste context</strong>. Bij elke nieuwe vraag moest ik opnieuw uitleggen wat er al was gebouwd. De chat had geen toegang tot mijn bestanden, kon niet testen, en de code-snippets pasten niet altijd in het grotere geheel.</p>
+    <p>Het resultaat: eindeloos knippen en plakken, versies die niet werkten, en frustratie. Het voelde alsof ik tegen een muur praatte die soms briljante dingen zei, maar nooit het complete plaatje zag.</p>
+    <div class="tool-card">
+      <div class="name">Claude Chat</div>
+      <p>Goed voor: brainstormen, uitleg, losse code-snippets. Niet ideaal voor: het opbouwen van een compleet project met veel samenhangende onderdelen.</p>
+    </div>
+    <div class="tag">Claude Chat</div>
+    <div class="tag">AI-assisted</div>
+    <div class="tag">Vastgelopen</div>
+  </div>
+
+  <!-- STAP 5 -->
+  <div class="step">
+    <div class="step-num">05</div>
+    <h2>De doorbraak &mdash; Claude Code</h2>
+    <p>En toen ontdekte ik <span class="highlight">Claude Code</span>.</p>
+    <p>Het verschil was <strong>onmiddellijk voelbaar</strong>. Claude Code werkt direct in je projectbestanden. Het leest je code, begrijpt de structuur, kan bewerken, testen en itereren &mdash; alles in &eacute;&eacute;n workflow. Geen knippen en plakken meer, geen verloren context.</p>
+    <p>Wat in weken Blender-werk en dagen Claude Chat niet lukte, kwam nu in uren tot stand. De drie kamers, de interactieve navigatie, de audio per kamer, het mediasysteem, het admin panel &mdash; alles groeide organisch vanuit mijn beschrijvingen.</p>
+    <p>Ik beschreef de sfeer die ik wilde &mdash; <em>&ldquo;Victoriaans, warm, kroonluchter&rdquo;</em> voor Kamer I, <em>&ldquo;kaal, bloederig, geen meubels&rdquo;</em> voor Kamer III &mdash; en Claude Code bouwde het. Direct. In mijn bestanden. Werkend.</p>
+    <div class="tool-card">
+      <div class="name">Claude Code</div>
+      <p>De gamechanger. Directe toegang tot bestanden, begrijpt context, kan itereren op bestaande code, test en bouwt in real-time. Perfect voor complexe interactieve projecten.</p>
+    </div>
+    <div class="tag">Claude Code</div>
+    <div class="tag">Doorbraak</div>
+    <div class="tag">Three.js</div>
+  </div>
+
+  <!-- STAP 6 -->
+  <div class="step">
+    <div class="step-num">06</div>
+    <h2>Het bouwen &mdash; iteratie op iteratie</h2>
+    <p>Met Claude Code als partner ontstond een snelle, creatieve workflow:</p>
+    <p><strong>De basis:</strong> Drie kamers met muren, vloeren, plafonds en deuren. Camera die door de ruimtes beweegt. Schilderijen aan de wanden.</p>
+    <p><strong>De sfeer:</strong> Per kamer unieke verlichting, kleuren en procedurele audio. Kamer I warm en goud. Kamer II groen en onzeker. Kamer III rood en beklemmend.</p>
+    <p><strong>De media:</strong> Een systeem waarmee ik per schilderij foto&rsquo;s, video&rsquo;s, audio en YouTube-links kan instellen via een beveiligd admin panel.</p>
+    <p><strong>De details:</strong> Victoriaans meubilair in Kamer I. Eenzame stoel en donkere ramen in Kamer II. Bloedsporen en leegte in Kamer III. Snelheidsregeling. Spotify-integratie per kamer.</p>
+    <p>Elke sessie voegde lagen toe. Het project groeide van een lege ruimte naar een complete kunstervaring.</p>
+    <div class="tag">Iteratief</div>
+    <div class="tag">Ontwikkeling</div>
+    <div class="tag">Detail</div>
+  </div>
+
+  <!-- STAP 7 -->
+  <div class="step">
+    <div class="step-num">07</div>
+    <h2>Het resultaat</h2>
+    <div class="verdict">
+      <p><em>Drie Kamers van Werkelijkheid</em> is een interactieve 3D-kunstervaring die de kijker meeneemt van vertrouwd nieuws, via twijfel, naar de beklemmende wereld van propaganda.</p>
+      <p class="big">&ldquo;Wanneer mensen niet meer zelf kritisch reflecteren op wat juist of onjuist is, ontstaat er ruimte voor haat en ontmenselijking.&rdquo;</p>
+      <p style="color:rgba(232,208,144,.4);font-size:.72rem;letter-spacing:.2em;margin-top:.8rem">&mdash; Hannah Arendt</p>
+    </div>
+    <p>Dit project toont aan dat technologie &mdash; wanneer goed ingezet &mdash; een krachtig middel is om kunst te maken die raakt, prikkelt en aanzet tot nadenken. De weg ernaartoe was niet recht, maar elke omweg bracht nieuwe inzichten.</p>
+    <div class="tag">Kunstwerk</div>
+    <div class="tag">Reflectie</div>
+    <div class="tag">Hannah Arendt</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Tijn Molenaar &middot; Drie Kamers van Werkelijkheid &middot; 2025/2026</p>
+</div>
+
+</body>
+</html>
