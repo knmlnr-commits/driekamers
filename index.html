@@ -57,6 +57,18 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
 /* Admin trigger */
 #adminTrigger{position:fixed;bottom:10px;left:10px;font-size:.52rem;letter-spacing:.2em;color:rgba(255,255,255,.07);cursor:pointer;z-index:90;padding:8px;transition:color .4s;user-select:none}
 #adminTrigger:hover{color:rgba(255,255,255,.3)}
+/* Speed controls */
+#speedControls{position:fixed;bottom:3.2rem;right:1.2rem;display:flex;align-items:center;gap:.5rem;opacity:0;transition:opacity .8s;pointer-events:none;z-index:20}
+#speedControls.show{opacity:1;pointer-events:all}
+.speedBtn{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-family:'Georgia',serif;font-size:.7rem;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;border-radius:4px;padding:0;letter-spacing:0}
+.speedBtn:hover{border-color:rgba(255,255,255,.45);color:rgba(255,255,255,.85)}
+.speedBtn.active{border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.1)}
+#speedLabel{font-size:.48rem;letter-spacing:.18em;color:rgba(255,255,255,.3)}
+/* Spotify button */
+#spotifyBtn{position:fixed;bottom:1rem;right:1.2rem;display:flex;align-items:center;gap:.45rem;background:rgba(30,215,96,.12);border:1px solid rgba(30,215,96,.3);color:rgba(30,215,96,.7);font-family:'Georgia',serif;font-size:.58rem;letter-spacing:.15em;padding:.45rem .9rem;cursor:pointer;transition:all .3s;border-radius:4px;opacity:0;pointer-events:none;z-index:20}
+#spotifyBtn.show{opacity:1;pointer-events:all}
+#spotifyBtn:hover{background:rgba(30,215,96,.22);border-color:rgba(30,215,96,.6);color:rgba(30,215,96,.95)}
+#spotifyBtn svg{width:16px;height:16px;fill:currentColor}
 /* Admin overlay */
 #adminOverlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:flex-start;justify-content:center;z-index:500;overflow-y:auto;padding:1.5rem 1rem}
 #adminBox{background:#080808;border:1px solid #252525;width:min(860px,100%);margin:0 auto}
@@ -120,7 +132,19 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
 </div>
 <div id="proceed"><button class="btn" id="proceedBtn"></button></div>
 <div id="dots"><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
-<div id="hint">SLEEP om rond te kijken<br>KLIK op lijst voor media<br>KLIK vrij voor snelheid</div>
+<div id="hint">SLEEP om rond te kijken<br>KLIK op lijst voor media<br>← → of knoppen voor snelheid</div>
+
+<div id="speedControls">
+  <span id="speedLabel">SNELHEID</span>
+  <button class="speedBtn" id="speedSlow" onclick="setSpeed(0)" title="Langzaam">▸</button>
+  <button class="speedBtn active" id="speedMed" onclick="setSpeed(1)" title="Normaal">▸▸</button>
+  <button class="speedBtn" id="speedFast" onclick="setSpeed(2)" title="Snel">▸▸▸</button>
+</div>
+
+<div id="spotifyBtn" onclick="openSpotify()">
+  <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+  <span id="spotifyLabel">LUISTER</span>
+</div>
 
 <div id="mOverlay" onclick="handleOverlayClick(event)">
   <div id="mInner" onclick="event.stopPropagation()">
@@ -349,6 +373,118 @@ function buildScene(){
   const cbl=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,.2,6),new THREE.MeshLambertMaterial({color:0x222}));cbl.position.y=.18;cG.add(cbl);
   for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;const arm=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,.46,5),gmAt);arm.position.set(Math.cos(a)*.24,-.07,Math.sin(a)*.24);arm.rotation.z=Math.PI/2-.32;arm.rotation.y=a;cG.add(arm);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.042,5,4),new THREE.MeshBasicMaterial({color:0xffee88}));bulb.position.set(Math.cos(a)*.44,-.14,Math.sin(a)*.44);cG.add(bulb);}
 
+  // ── FURNITURE ──────────────────────────────────────────────────
+  function addFurniture(){
+    const boxG=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+    const cylG=(r,h,s)=>new THREE.CylinderGeometry(r,r,h,s||8);
+
+    // Helper: create a simple desk/table
+    function makeTable(x,z,w,d,h,matColor,legColor){
+      const tMat=new THREE.MeshLambertMaterial({color:matColor});
+      const lMat=new THREE.MeshLambertMaterial({color:legColor||matColor});
+      const top=new THREE.Mesh(boxG(w,.04,d),tMat);top.position.set(x,h,z);scene.add(top);
+      const inset=.06;
+      [[-w/2+inset,h/2,-d/2+inset],[w/2-inset,h/2,-d/2+inset],[-w/2+inset,h/2,d/2-inset],[w/2-inset,h/2,d/2-inset]].forEach(([lx,ly,lz])=>{
+        const leg=new THREE.Mesh(boxG(.04,h,.04),lMat);leg.position.set(x+lx,ly,z+lz);scene.add(leg);
+      });
+    }
+
+    // Helper: simple chair
+    function makeChair(x,z,ry,matColor){
+      const mat=new THREE.MeshLambertMaterial({color:matColor});
+      const seat=new THREE.Mesh(boxG(.4,.03,.38),mat);seat.position.set(x,.5,z);seat.rotation.y=ry;scene.add(seat);
+      const back=new THREE.Mesh(boxG(.4,.5,.03),mat);back.position.set(x-.19*Math.sin(ry),.75+.02,z-.19*Math.cos(ry));back.rotation.y=ry;scene.add(back);
+      [[-0.16,.25,-.14],[.16,.25,-.14],[-.16,.25,.14],[.16,.25,.14]].forEach(([lx,ly,lz])=>{
+        const leg=new THREE.Mesh(boxG(.03,.5,.03),mat);
+        const cx=lx*Math.cos(ry)-lz*Math.sin(ry), cz=lx*Math.sin(ry)+lz*Math.cos(ry);
+        leg.position.set(x+cx,ly,z+cz);scene.add(leg);
+      });
+    }
+
+    // Helper: bookshelf
+    function makeBookshelf(x,z,ry,matColor,bookColors){
+      const mat=new THREE.MeshLambertMaterial({color:matColor});
+      const w=.9,h=1.8,d=.3;
+      // Back
+      const bk=new THREE.Mesh(boxG(w,h,.02),mat);bk.position.set(x,h/2,z);bk.rotation.y=ry;scene.add(bk);
+      // Shelves
+      for(let i=0;i<5;i++){
+        const sy=i*(h/4);
+        const shelf=new THREE.Mesh(boxG(w,.025,d),mat);
+        shelf.position.set(x-d/2*Math.sin(ry),sy,z-d/2*Math.cos(ry));shelf.rotation.y=ry;scene.add(shelf);
+      }
+      // Books on shelves
+      bookColors.forEach((col,si)=>{
+        const sy=si*(h/4)+.06;
+        for(let b=0;b<4+Math.floor(Math.random()*3);b++){
+          const bw=.06+Math.random()*.04,bh=.2+Math.random()*.12;
+          const bMat=new THREE.MeshLambertMaterial({color:col[b%col.length]});
+          const book=new THREE.Mesh(boxG(bw,bh,.18),bMat);
+          const ox=-w/2+.08+b*.11;
+          const bx=x+(ox*Math.cos(ry)-d/2*Math.sin(ry));
+          const bz=z+(ox*Math.sin(ry)-d/2*Math.cos(ry));
+          book.position.set(bx,sy+bh/2,bz);book.rotation.y=ry;scene.add(book);
+        }
+      });
+    }
+
+    // Helper: standing lamp
+    function makeLamp(x,z,poleColor,shadeColor){
+      const poleMat=new THREE.MeshLambertMaterial({color:poleColor});
+      const shadeMat=new THREE.MeshLambertMaterial({color:shadeColor,emissive:shadeColor,emissiveIntensity:.3});
+      const base=new THREE.Mesh(cylG(.12,.02,12),poleMat);base.position.set(x,.01,z);scene.add(base);
+      const pole=new THREE.Mesh(cylG(.015,1.5,6),poleMat);pole.position.set(x,.76,z);scene.add(pole);
+      const shade=new THREE.Mesh(new THREE.ConeGeometry(.15,.2,8,1,true),shadeMat);shade.position.set(x,1.56,z);scene.add(shade);
+    }
+
+    // ── KAMER I: De Nieuwskamer (newsroom feel) ──
+    // Reading desk left side
+    makeTable(-1.8,-2.5,1.2,.6,.78,0x5c3a1a,0x3d2510);
+    // Chair at desk
+    makeChair(-1.8,-2.1,0,0x3d2510);
+    // Bookshelf on back wall area (left side)
+    makeBookshelf(-2.5,-0.5,Math.PI/2,0x4a2e12,
+      [[0x1a2844,0x8b1a1a,0x2a4a2a,0x6b5a2a],[0x3a1818,0x1a3a4a,0x4a3a1a],[0x2a2a4a,0x5a2a1a,0x1a4a2a],[0x4a1a1a,0x2a3a5a]]);
+    // Standing lamp right side
+    makeLamp(2.2,-1.5,0x443322,0xffcc66);
+    // Small table right side
+    makeTable(1.8,-5.0,.7,.5,.6,0x5c3a1a,0x3d2510);
+
+    // ── KAMER II: De Twijfelkamer (uncertain, minimal) ──
+    // Sparse table center-left
+    makeTable(-1.5,-10.5,.8,.5,.72,0x2a3a1a,0x1a2a10);
+    // Two chairs facing each other
+    makeChair(-1.5,-10.0,Math.PI,0x1e2e12);
+    makeChair(-1.5,-11.0,0,0x1e2e12);
+    // Standing lamp
+    makeLamp(2.3,-9.0,0x1a2a1a,0x3a6a2a);
+    // Small shelf
+    makeBookshelf(-2.5,-12.5,Math.PI/2,0x1a2a12,
+      [[0x1a3a1a,0x2a4a2a,0x0a2a0a],[0x3a4a2a,0x1a2a3a],[0x2a3a1a,0x1a4a3a],[0x0a2a0a,0x3a5a2a]]);
+
+    // ── KAMER III: De Propagandakamer (heavy, oppressive) ──
+    // Heavy podium/desk
+    const podMat=new THREE.MeshLambertMaterial({color:0x2a0404});
+    const podTop=new THREE.Mesh(boxG(1.6,.08,.7),podMat);podTop.position.set(0,.9,-17.5);scene.add(podTop);
+    const podFront=new THREE.Mesh(boxG(1.6,.9,.04),podMat);podFront.position.set(0,.45,-17.15);scene.add(podFront);
+    const podSideL=new THREE.Mesh(boxG(.04,.9,.7),podMat);podSideL.position.set(-.78,.45,-17.5);scene.add(podSideL);
+    const podSideR=new THREE.Mesh(boxG(.04,.9,.7),podMat);podSideR.position.set(.78,.45,-17.5);scene.add(podSideR);
+    // Emblem on podium front
+    const embMat=new THREE.MeshLambertMaterial({color:0xaa0000,emissive:0x440000,emissiveIntensity:.5});
+    const emblem=new THREE.Mesh(new THREE.CircleGeometry(.18,6),embMat);emblem.position.set(0,.5,-17.13);scene.add(emblem);
+    // Standing lamp (ominous red)
+    makeLamp(2.2,-18.5,0x2a0808,0xcc2222);
+    makeLamp(-2.2,-20.0,0x2a0808,0xcc2222);
+    // Heavy chair behind podium
+    const hcMat=new THREE.MeshLambertMaterial({color:0x3a0606});
+    const hcSeat=new THREE.Mesh(boxG(.55,.04,.45),hcMat);hcSeat.position.set(0,.55,-18.0);scene.add(hcSeat);
+    const hcBack=new THREE.Mesh(boxG(.55,.8,.04),hcMat);hcBack.position.set(0,.95,-18.2);scene.add(hcBack);
+    [[-0.22,.27,-.18],[.22,.27,-.18],[-.22,.27,.18],[.22,.27,.18]].forEach(([lx,ly,lz])=>{
+      const leg=new THREE.Mesh(boxG(.04,.55,.04),hcMat);leg.position.set(lx,ly,-18.0+lz);scene.add(leg);
+    });
+  }
+  addFurniture();
+
   scene.add(new THREE.AmbientLight(0x111111,.3));
   l1a=ptL(0xffcc66,3.0,14,0,3.2,-3.5);
   ptL(0x3a5a26,1.5,12,0,3,-11);
@@ -393,7 +529,6 @@ function handleClick(e){
   raycaster.setFromCamera(mouse,cam);
   const hits=raycaster.intersectObjects(clickables.map(c=>c.mesh));
   if(hits.length){const found=clickables.find(c=>c.mesh===hits[0].object);if(found&&MEDIA[found.mediaKey]){openMedia(MEDIA[found.mediaKey],PLABELS[found.mediaKey]||found.mediaKey);return;}return;}
-  speed=(speed>.00007)?.00010:.00026;
 }
 let toastTimer=null;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
@@ -421,10 +556,26 @@ const KF=[[0,5,1.5],[.08,2,-1.5],[.22,-2.5,-5.5],[.30,-6.2,-8.8],[.46,-10,-13.5]
 function sm(t){return t*t*(3-2*t);}
 function getPos(t){for(let i=0;i<KF.length-1;i++){if(t>=KF[i][0]&&t<=KF[i+1][0]){const f=sm((t-KF[i][0])/(KF[i+1][0]-KF[i][0]));return{pz:KF[i][1]+(KF[i+1][1]-KF[i][1])*f,lz:KF[i][2]+(KF[i+1][2]-KF[i][2])*f};}}return{pz:KF.at(-1)[1],lz:KF.at(-1)[2]};}
 const PAUSES=[[.30,'BETREED KAMER II →',.31],[.56,'BETREED KAMER III →',.57],[.92,'ZIE DE CONCLUSIE →',null]];
-let walking=false,camT=0,speed=.00010,tick=0,paused=false,pauseIdx=0,curRoom=-1;
+let walking=false,camT=0,speed=.00016,tick=0,paused=false,pauseIdx=0,curRoom=-1;
 let l1a,l3a,l3b,l3c;
+const SPEEDS=[.00008,.00016,.00032];
+let curSpeedIdx=1;
+function setSpeed(idx){curSpeedIdx=idx;speed=SPEEDS[idx];['speedSlow','speedMed','speedFast'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i===idx));}
+window.addEventListener('keydown',e=>{
+  if(!walking||mediaOpen)return;
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();setSpeed(Math.max(0,curSpeedIdx-1));}
+  else if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();setSpeed(Math.min(2,curSpeedIdx+1));}
+});
+// Spotify URLs per room (configure these)
+const SPOTIFY_URLS={
+  0:'', // Kamer I
+  1:'', // Kamer II
+  2:''  // Kamer III
+};
+function openSpotify(){const url=SPOTIFY_URLS[curRoom];if(url)window.open(url,'_blank');else showToast('Spotify nog niet ingesteld voor deze kamer');}
 
-function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));initAudio();playRoom(r+1);}
+const SPOTIFY_LABELS={0:'LUISTER · KAMER I',1:'LUISTER · KAMER II',2:'LUISTER · KAMER III'};
+function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';initAudio();playRoom(r+1);}
 function animate(){
   requestAnimationFrame(animate);tick++;
   if(walking&&!paused&&!mediaOpen&&camT<1){camT=Math.min(camT+speed,1);if(pauseIdx<PAUSES.length&&camT>=PAUSES[pauseIdx][0]){camT=PAUSES[pauseIdx][0];paused=true;const btn=document.getElementById('proceedBtn');btn.textContent=PAUSES[pauseIdx][1];btn.onclick=()=>advance();document.getElementById('proceed').classList.add('show');}}
@@ -441,8 +592,8 @@ function animate(){
 }
 animate();
 function advance(){document.getElementById('proceed').classList.remove('show');const next=PAUSES[pauseIdx][2];if(next===null){document.getElementById('ending').classList.add('show');stopAudio();return;}camT=next;paused=false;pauseIdx++;}
-function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
-document.getElementById('startBtn').onclick=()=>{initAudio();const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';walking=true;};
+function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;setSpeed(1);const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';document.getElementById('speedControls').classList.remove('show');document.getElementById('spotifyBtn').classList.remove('show');['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
+document.getElementById('startBtn').onclick=()=>{initAudio();const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';document.getElementById('speedControls').classList.add('show');document.getElementById('spotifyBtn').classList.add('show');walking=true;};
 
 // ── LOAD CONFIG ──────────────────────────────────────────────────
 async function loadConfig(){
