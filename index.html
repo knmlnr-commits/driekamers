@@ -193,7 +193,7 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
         </div>
       </div>
       <div style="padding:.6rem 1.4rem;background:#050505;border-bottom:1px solid #111;font-size:.56rem;letter-spacing:.14em;color:#4a6a4a;line-height:1.8">
-        Na het instellen van media: klik ⬇ download → upload <code style="background:#0a0a0a;padding:1px 5px">media-config.json</code> naar je GitHub repo → werkt op alle machines.
+        Bij elke wijziging downloadt <code style="background:#0a0a0a;padding:1px 5px">media-config.json</code> automatisch. Upload dit bestand naar de root van je GitHub repo → dan werkt het op alle browsers/apparaten.
       </div>
       <div class="aBody" id="adminGrid"></div>
     </div>
@@ -694,8 +694,10 @@ window.addEventListener('keydown',e=>{
 const SPOTIFY_URLS={0:'',1:'',2:''};
 function openSpotify(){const url=SPOTIFY_URLS[curRoom];if(url)window.open(url,'_blank');else showToast('Spotify nog niet ingesteld voor deze kamer');}
 async function loadSpotify(){
+  // Laad eerst lokale overrides
   try{const r=await safeStore.get('spotify_urls');if(r){const d=JSON.parse(r.value);Object.assign(SPOTIFY_URLS,d);}}catch(e){}
-  try{const resp=await fetch('media-config.json');if(resp.ok){const cfg=await resp.json();if(cfg._spotify){for(const k in cfg._spotify){if(!SPOTIFY_URLS[k])SPOTIFY_URLS[k]=cfg._spotify[k];}}}}catch(e){}
+  // media-config.json overschrijft altijd (dit is de gedeelde bron voor alle browsers)
+  try{const resp=await fetch('media-config.json');if(resp.ok){const cfg=await resp.json();if(cfg._spotify){for(const k in cfg._spotify){SPOTIFY_URLS[k]=cfg._spotify[k];}}}}catch(e){}
 }
 async function saveSpotifyUrls(){
   await safeStore.set('spotify_urls',JSON.stringify(SPOTIFY_URLS));
@@ -963,43 +965,57 @@ async function saveEdit(){
   const encoded=JSON.stringify(newMedia);
   if(encoded.length<=STORAGE_MAX){
     const ok=await safeStore.set(`painting:${editingKey}`,encoded);
-    prog.textContent=ok?'✅ Opgeslagen in browser — blijft na refresh bewaard':'✅ Geladen (opslag mislukt — probeer een kleiner bestand)';
+    prog.textContent=ok?'✅ Opgeslagen — media-config.json downloadt automatisch':'✅ Geladen (opslag mislukt — probeer een kleiner bestand)';
   }else{
-    prog.textContent=`✅ Opgeslagen in browser — blijft na refresh bewaard (${(encoded.length/1024/1024).toFixed(1)} MB).`;
+    prog.textContent=`✅ Opgeslagen (${(encoded.length/1024/1024).toFixed(1)} MB) — media-config.json downloadt automatisch`;
   }
+  autoSaveConfig();
   setTimeout(()=>{closeEdit();buildGrid();},1400);
 }
 
-function downloadConfig(){
+function buildConfig(){
   const cfg={};
   MKEYS.forEach(k=>{if(MEDIA[k])cfg[k]=MEDIA[k];});
-  // Include Spotify URLs
   const sp={};[0,1,2].forEach(i=>{if(SPOTIFY_URLS[i])sp[i]=SPOTIFY_URLS[i];});
   if(Object.keys(sp).length)cfg._spotify=sp;
+  return cfg;
+}
+function downloadConfig(){
+  const cfg=buildConfig();
   const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
   showToast('Download gestart — upload naar GitHub repo root');
 }
+function autoSaveConfig(){
+  // Automatisch media-config.json downloaden zodat het gecommit kan worden
+  const cfg=buildConfig();
+  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
+}
 async function saveSpotifyAdmin(){
   for(let i=0;i<3;i++){const v=(document.getElementById(`spotIn${i}`)?.value||'').trim();SPOTIFY_URLS[i]=v;}
   await saveSpotifyUrls();
-  showToast('Spotify-links opgeslagen');
+  autoSaveConfig();
+  showToast('Spotify-links opgeslagen — media-config.json gedownload, commit naar GitHub voor alle browsers');
   buildGrid();
 }
 async function clearEdit(){
   MEDIA[editingKey]=null;refreshPainting(editingKey);
   await safeStore.delete(`painting:${editingKey}`);
+  autoSaveConfig();
   closeEdit();buildGrid();
 }
 
 // ── ASYNC INIT (load config + storage → build scene) ────────────
 (async()=>{
-  await loadConfig();
-  await loadSpotify();
+  // Laad eerst lokale browser-data
   for(const key of MKEYS){
     const r=await safeStore.get(`painting:${key}`);
     if(r)try{MEDIA[key]=JSON.parse(r.value);}catch(e){}
   }
+  // media-config.json overschrijft: dit is de gedeelde bron voor alle browsers
+  await loadConfig();
+  await loadSpotify();
   buildScene();
 })();
 </script>
