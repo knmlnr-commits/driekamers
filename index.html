@@ -885,42 +885,65 @@ function buildGrid(){
     </div>`).join('')}
     <button class="abtn pri" onclick="saveSpotifyAdmin()" style="margin-top:.3rem">SPOTIFY OPSLAAN</button>
   </div>`;
-  // Concept CMS section
+  // Concept CMS section — default texts match concept.html
+  const CONCEPT_DEFAULTS={
+    hero_sub:'Tijn Molenaar \u00b7 KuBV Masterpiece 2025/2026',
+    hero_title:'Concept Ontwikkeling',
+    hero_text:'Het volledige proces van eerste idee tot digitaal kunstwerk \u2014 hoe observatie, frustratie en technologie samenkwamen in <em>Drie Kamers van Werkelijkheid</em>.',
+    step1_title:'De observatie \u2014 media om ons heen',
+    step1_text:'Het begon met een simpele vraag: <span class="highlight">hoe consumeren wij eigenlijk nieuws?</span> Dagelijks scrollen we door NOS, BBC, CNN, Instagram-kanalen en TikTok. Iedereen krijgt hetzelfde verhaal \u2014 of juist niet. Dezelfde gebeurtenis, maar met een andere kop, andere framing, andere beelden. De grens tussen objectief nieuws en propaganda vervaagt steeds verder.\n\nDeepfakes, AI-gegenereerde beelden, gemanipuleerde video\u2019s van conflictgebieden \u2014 het wordt steeds moeilijker om waarheid van leugen te onderscheiden. Dit werd de kern van mijn project.',
+    step2_title:'Het concept \u2014 drie kamers, drie werkelijkheden',
+    step2_text:'Ik wilde de kijker <em>meenemen</em> op een reis. Niet vertellen, maar laten ervaren. Zo ontstond het idee van drie kamers die elk een fase van mediamanipulatie vertegenwoordigen:\n\n<strong>Kamer I \u2014 De Nieuwskamer</strong>\nObjectief, chique, vertrouwd. Krantenkoppen, nieuwsuitzendingen, persfoto\u2019s. Mooie Victoriaanse inrichting, zachte pianomuziek. De kijker voelt zich veilig.\n\n<strong>Kamer II \u2014 De Twijfelkamer</strong>\nHier schuurt het. Dezelfde beelden met een andere kop. Nep naast echt. Minimale inrichting, donkere ramen, een eenzame stoel. De zekerheid verdwijnt.\n\n<strong>Kamer III \u2014 De Propagandakamer</strong>\nGeen meubels, geen ramen. Bloedsporen op de muren. Propaganda, censuur, haatverspreiding. Geluiden door elkaar, versneld \u2014 stress, chaos. Eindigend met een citaat van Hannah Arendt over het gevaar van niet meer nadenken.',
+    step3_title:'Poging 1 \u2014 Blender',
+    step3_text:'De eerste aanpak was logisch: <span class="highlight">Blender</span>. Ik begon met het modelleren van een huis met drie ruimtes. Muren, deuren, een dak. Het zag er goed uit als 3D-model.\n\nMaar toen kwam het probleem: <strong>hoe maak je het interactief?</strong> Hoe laat je iemand er doorheen lopen? Hoe embed je video\u2019s, foto\u2019s en geluid? Blender is fantastisch voor renders en animaties, maar voor een interactieve web-ervaring schiet het tekort. Export naar web (via glTF/Three.js) werkte technisch, maar de workflow was onhandig, de bestanden te groot, en de interactiviteit beperkt.\n\nNa weken proberen was de conclusie helder: Blender was niet de juiste tool voor dit project.',
+    step4_title:'Poging 2 \u2014 Claude Chat',
+    step4_text:'Met het Blender-pad doodgelopen, probeerde ik een andere aanpak: <span class="highlight">AI-assisted development</span>. Via Claude Chat (de chatinterface van Anthropic) beschreef ik mijn concept en vroeg om hulp bij het bouwen van een Three.js-applicatie.\n\nClaude Chat begreep het concept goed en kon mooie stukken code genereren. Maar er was een fundamenteel probleem: <strong>het miste context</strong>. Bij elke nieuwe vraag moest ik opnieuw uitleggen wat er al was gebouwd. De chat had geen toegang tot mijn bestanden, kon niet testen, en de code-snippets pasten niet altijd in het grotere geheel.\n\nHet resultaat: eindeloos knippen en plakken, versies die niet werkten, en frustratie. Het voelde alsof ik tegen een muur praatte die soms briljante dingen zei, maar nooit het complete plaatje zag.',
+    step5_title:'De doorbraak \u2014 Claude Code',
+    step5_text:'En toen ontdekte ik <span class="highlight">Claude Code</span>.\n\nHet verschil was <strong>onmiddellijk voelbaar</strong>. Claude Code werkt direct in je projectbestanden. Het leest je code, begrijpt de structuur, kan bewerken, testen en itereren \u2014 alles in \u00e9\u00e9n workflow. Geen knippen en plakken meer, geen verloren context.\n\nWat in weken Blender-werk en dagen Claude Chat niet lukte, kwam nu in uren tot stand. De drie kamers, de interactieve navigatie, de audio per kamer, het mediasysteem, het admin panel \u2014 alles groeide organisch vanuit mijn beschrijvingen.\n\nIk beschreef de sfeer die ik wilde \u2014 <em>\u201cVictoriaans, warm, kroonluchter\u201d</em> voor Kamer I, <em>\u201ckaal, bloederig, geen meubels\u201d</em> voor Kamer III \u2014 en Claude Code bouwde het. Direct. In mijn bestanden. Werkend.',
+    step6_title:'Het bouwen \u2014 iteratie op iteratie',
+    step6_text:'Met Claude Code als partner ontstond een snelle, creatieve workflow:\n\n<strong>De basis:</strong> Drie kamers met muren, vloeren, plafonds en deuren. Camera die door de ruimtes beweegt. Schilderijen aan de wanden.\n\n<strong>De sfeer:</strong> Per kamer unieke verlichting, kleuren en procedurele audio. Kamer I warm en goud. Kamer II groen en onzeker. Kamer III rood en beklemmend.\n\n<strong>De media:</strong> Een systeem waarmee ik per schilderij foto\u2019s, video\u2019s, audio en YouTube-links kan instellen via een beveiligd admin panel.\n\n<strong>De details:</strong> Victoriaans meubilair in Kamer I. Eenzame stoel en donkere ramen in Kamer II. Bloedsporen en leegte in Kamer III. Snelheidsregeling. Spotify-integratie per kamer.\n\nElke sessie voegde lagen toe. Het project groeide van een lege ruimte naar een complete kunstervaring.',
+    step7_title:'Het resultaat',
+    step7_text:'Dit project toont aan dat technologie \u2014 wanneer goed ingezet \u2014 een krachtig middel is om kunst te maken die raakt, prikkelt en aanzet tot nadenken. De weg ernaartoe was niet recht, maar elke omweg bracht nieuwe inzichten.',
+    verdict_text:'<em>Drie Kamers van Werkelijkheid</em> is een interactieve 3D-kunstervaring die de kijker meeneemt van vertrouwd nieuws, via twijfel, naar de beklemmende wereld van propaganda.',
+    verdict_quote:'\u201cWanneer mensen niet meer zelf kritisch reflecteren op wat juist of onjuist is, ontstaat er ruimte voor haat en ontmenselijking.\u201d',
+    verdict_author:'\u2014 Hannah Arendt',
+    footer_text:'Tijn Molenaar \u00b7 Drie Kamers van Werkelijkheid \u00b7 2025/2026',
+  };
   const conceptFields=[
-    {key:'hero_sub',label:'Hero ondertitel',placeholder:'Tijn Molenaar · KuBV Masterpiece 2025/2026'},
-    {key:'hero_title',label:'Hero titel',placeholder:'Concept Ontwikkeling'},
-    {key:'hero_text',label:'Hero tekst',placeholder:'Het volledige proces van eerste idee tot digitaal kunstwerk...'},
-    {key:'step1_title',label:'Stap 1 — Titel',placeholder:'De observatie — media om ons heen'},
-    {key:'step1_text',label:'Stap 1 — Tekst',placeholder:'Het begon met een simpele vraag...',multi:true},
-    {key:'step2_title',label:'Stap 2 — Titel',placeholder:'Het concept — drie kamers, drie werkelijkheden'},
-    {key:'step2_text',label:'Stap 2 — Tekst',placeholder:'Ik wilde de kijker meenemen...',multi:true},
-    {key:'step3_title',label:'Stap 3 — Titel',placeholder:'Poging 1 — Blender'},
-    {key:'step3_text',label:'Stap 3 — Tekst',placeholder:'De eerste aanpak was logisch...',multi:true},
-    {key:'step4_title',label:'Stap 4 — Titel',placeholder:'Poging 2 — Claude Chat'},
-    {key:'step4_text',label:'Stap 4 — Tekst',placeholder:'Met het Blender-pad doodgelopen...',multi:true},
-    {key:'step5_title',label:'Stap 5 — Titel',placeholder:'De doorbraak — Claude Code'},
-    {key:'step5_text',label:'Stap 5 — Tekst',placeholder:'En toen ontdekte ik Claude Code...',multi:true},
-    {key:'step6_title',label:'Stap 6 — Titel',placeholder:'Het bouwen — iteratie op iteratie'},
-    {key:'step6_text',label:'Stap 6 — Tekst',placeholder:'Met Claude Code als partner...',multi:true},
-    {key:'step7_title',label:'Stap 7 — Titel',placeholder:'Het resultaat'},
-    {key:'step7_text',label:'Stap 7 — Tekst',placeholder:'Dit project toont aan dat technologie...',multi:true},
-    {key:'verdict_text',label:'Verdict tekst',placeholder:'Drie Kamers van Werkelijkheid is een interactieve...',multi:true},
-    {key:'verdict_quote',label:'Verdict citaat',placeholder:'Wanneer mensen niet meer zelf kritisch reflecteren...'},
-    {key:'verdict_author',label:'Citaat auteur',placeholder:'Hannah Arendt'},
-    {key:'footer_text',label:'Footer',placeholder:'Tijn Molenaar · Drie Kamers van Werkelijkheid · 2025/2026'},
+    {key:'hero_sub',label:'Hero ondertitel'},
+    {key:'hero_title',label:'Hero titel'},
+    {key:'hero_text',label:'Hero tekst'},
+    {key:'step1_title',label:'Stap 1 — Titel'},
+    {key:'step1_text',label:'Stap 1 — Tekst',multi:true},
+    {key:'step2_title',label:'Stap 2 — Titel'},
+    {key:'step2_text',label:'Stap 2 — Tekst',multi:true},
+    {key:'step3_title',label:'Stap 3 — Titel'},
+    {key:'step3_text',label:'Stap 3 — Tekst',multi:true},
+    {key:'step4_title',label:'Stap 4 — Titel'},
+    {key:'step4_text',label:'Stap 4 — Tekst',multi:true},
+    {key:'step5_title',label:'Stap 5 — Titel'},
+    {key:'step5_text',label:'Stap 5 — Tekst',multi:true},
+    {key:'step6_title',label:'Stap 6 — Titel'},
+    {key:'step6_text',label:'Stap 6 — Tekst',multi:true},
+    {key:'step7_title',label:'Stap 7 — Titel'},
+    {key:'step7_text',label:'Stap 7 — Tekst',multi:true},
+    {key:'verdict_text',label:'Verdict tekst',multi:true},
+    {key:'verdict_quote',label:'Verdict citaat'},
+    {key:'verdict_author',label:'Citaat auteur'},
+    {key:'footer_text',label:'Footer'},
   ];
   const conceptSection=`<div class="roomSec"><h3><span class="rDot" style="background:#e8d090"></span>CONCEPT PAGINA — TEKSTEN</h3>
     <div style="padding:.5rem 0;font-size:.56rem;color:#6a6040;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
       Pas de teksten van de concept-pagina aan. Laat een veld leeg om de standaardtekst te gebruiken.<br>
       Gebruik <code style="background:#111;padding:1px 5px">&lt;em&gt;tekst&lt;/em&gt;</code> voor cursief en <code style="background:#111;padding:1px 5px">&lt;strong&gt;tekst&lt;/strong&gt;</code> voor vet.
     </div>
-    ${conceptFields.map(f=>`<div style="margin-bottom:.8rem">
+    ${conceptFields.map(f=>{const val=CONCEPT_TEXTS[f.key]||CONCEPT_DEFAULTS[f.key]||'';const esc=val.replace(/</g,'&lt;').replace(/>/g,'&gt;');const escAttr=val.replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');return`<div style="margin-bottom:.8rem">
       <label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#8a7a50;margin-bottom:.25rem">${f.label}</label>
       ${f.multi
-        ?`<textarea id="cms_${f.key}" rows="4" placeholder="${f.placeholder}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none;resize:vertical;line-height:1.6">${CONCEPT_TEXTS[f.key]||''}</textarea>`
-        :`<input type="text" id="cms_${f.key}" value="${(CONCEPT_TEXTS[f.key]||'').replace(/"/g,'&quot;')}" placeholder="${f.placeholder}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none">`
+        ?`<textarea id="cms_${f.key}" rows="6" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none;resize:vertical;line-height:1.6">${esc}</textarea>`
+        :`<input type="text" id="cms_${f.key}" value="${escAttr}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none">`
       }
-    </div>`).join('')}
+    </div>`;}).join('')}
     <button class="abtn pri" onclick="saveConceptAdmin()" style="margin-top:.3rem">CONCEPT TEKSTEN OPSLAAN</button>
   </div>`;
   document.getElementById('adminGrid').innerHTML=ghSection+spotifySection+conceptSection+rooms.map(r=>`
