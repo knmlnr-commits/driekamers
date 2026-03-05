@@ -41,6 +41,11 @@
     "type": "mp4",
     "src": "media/tru.mov"
   },
+  "r2_R1": {
+    "type": "photo",
+    "src": "media/pvv.png",
+    "caption": ""
+  },
   "r2_R2": {
     "type": "photo",
     "src": "media/Bart.jpg",
