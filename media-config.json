@@ -4,9 +4,18 @@
     "src": "media/nu1.png",
     "caption": ""
   },
+  "r1_L2": {
+    "type": "photo",
+    "src": "media/nu.png",
+    "caption": ""
+  },
   "r1_L3": {
     "type": "mp4",
     "src": "media/1links3.mp4"
+  },
+  "r1_R1": {
+    "type": "mp4",
+    "src": "media/arj.mov"
   },
   "r2_L1": {
     "type": "photo",
