@@ -811,7 +811,9 @@ function saveGhAdmin(){
   ghSettings.branch=(document.getElementById('ghBranch')?.value||'main').trim();
   ghSettings.token=(document.getElementById('ghToken')?.value||'').trim();
   saveGhSettings();updateGhStatus();
-  showToast(ghConfigured()?'GitHub-koppeling opgeslagen!':'GitHub-instellingen gewist');
+  // Also persist non-sensitive settings to repo so other browsers can load them
+  if(ghConfigured())saveGhConfigToRepo();
+  showToast(ghConfigured()?'GitHub-koppeling opgeslagen (ook in repo)!':'GitHub-instellingen gewist');
 }
 async function testGhConnection(){
   const el=document.getElementById('ghTestResult');
@@ -845,7 +847,7 @@ function buildGrid(){
   // GitHub settings section
   const ghSection=`<div class="roomSec"><h3><span class="rDot" style="background:#6e5494"></span>GITHUB KOPPELING</h3>
     <div style="padding:.5rem 0;font-size:.56rem;color:#6a5a8a;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
-      Koppel je GitHub repo zodat uploads direct zichtbaar zijn voor alle bezoekers.<br>
+      Koppel je GitHub repo zodat uploads direct zichtbaar zijn voor alle bezoekers. Eigenaar, repo en branch worden automatisch bewaard in de repo zelf zodat ze in elke browser beschikbaar zijn. Het token wordt lokaal opgeslagen (veiligheid).<br>
       Maak een <a href="https://github.com/settings/tokens/new?scopes=repo&description=Driekamers+CMS" target="_blank" style="color:#9a8abf;border-bottom:1px solid rgba(154,138,191,.3)">Personal Access Token</a> aan met <code style="background:#111;padding:1px 5px">repo</code> rechten.
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem">
@@ -955,9 +957,28 @@ function buildGrid(){
 // ── GITHUB API ────────────────────────────────────────────────────
 // Upload files directly to the GitHub repo so they're visible to all visitors.
 const GH_SETTINGS_KEY='gh_settings';
-let ghSettings={owner:'',repo:'',token:'',branch:'main'};
-function loadGhSettings(){try{const s=localStorage.getItem(GH_SETTINGS_KEY);if(s)Object.assign(ghSettings,JSON.parse(s));}catch(e){}}
+let ghSettings={owner:'knmlnr-commits',repo:'driekamers',token:'',branch:'main'};
+function loadGhSettings(){
+  try{const s=localStorage.getItem(GH_SETTINGS_KEY);if(s)Object.assign(ghSettings,JSON.parse(s));}catch(e){}
+  // Also try loading saved config from repo (non-sensitive fields)
+  loadGhConfigFromRepo();
+}
 function saveGhSettings(){try{localStorage.setItem(GH_SETTINGS_KEY,JSON.stringify(ghSettings));}catch(e){}}
+async function loadGhConfigFromRepo(){
+  try{
+    // Try fetching public config from repo (works for public repos without auth)
+    const r=await fetch(`https://raw.githubusercontent.com/${ghSettings.owner}/${ghSettings.repo}/${ghSettings.branch}/cms-config.json?_=${Date.now()}`);
+    if(r.ok){const cfg=await r.json();if(cfg.owner)ghSettings.owner=cfg.owner;if(cfg.repo)ghSettings.repo=cfg.repo;if(cfg.branch)ghSettings.branch=cfg.branch;
+      // Token from repo config only if not already set locally
+      if(!ghSettings.token&&cfg.token)ghSettings.token=cfg.token;
+      saveGhSettings();}
+  }catch(e){}
+}
+async function saveGhConfigToRepo(){
+  if(!ghConfigured())return;
+  const cfg={owner:ghSettings.owner,repo:ghSettings.repo,branch:ghSettings.branch};
+  try{await ghUploadFile('cms-config.json',JSON.stringify(cfg,null,2),'CMS: GitHub config opgeslagen');}catch(e){}
+}
 loadGhSettings();
 
 function ghConfigured(){return ghSettings.owner&&ghSettings.repo&&ghSettings.token;}
