@@ -819,7 +819,19 @@ function checkPwd(){
     showPanel();
   }else{document.getElementById('pwdError').textContent='Onjuist wachtwoord';document.getElementById('pwdInput').value='';}
 }
-function showPanel(){document.getElementById('loginSection').style.display='none';document.getElementById('panelSection').style.display='block';buildGrid();updateGhStatus();}
+async function showPanel(){
+  document.getElementById('loginSection').style.display='none';
+  document.getElementById('panelSection').style.display='block';
+  buildGrid();updateGhStatus();
+  // Fetch config from repo (async) — once loaded, refresh fields & status
+  await loadGhConfigFromRepo();
+  // Update input fields with freshly loaded values (including decrypted token)
+  const ownerEl=document.getElementById('ghOwner');if(ownerEl)ownerEl.value=ghSettings.owner;
+  const repoEl=document.getElementById('ghRepo');if(repoEl)repoEl.value=ghSettings.repo;
+  const branchEl=document.getElementById('ghBranch');if(branchEl)branchEl.value=ghSettings.branch;
+  const tokenEl=document.getElementById('ghToken');if(tokenEl)tokenEl.value=ghSettings.token;
+  updateGhStatus();
+}
 function closeAdmin(){document.getElementById('adminOverlay').style.display='none';document.getElementById('pwdInput').value='';document.getElementById('pwdError').textContent='';}
 function saveGhAdmin(){
   ghSettings.owner=(document.getElementById('ghOwner')?.value||'').trim();
@@ -1020,10 +1032,10 @@ async function loadGhConfigFromRepo(){
       if(cfg.owner)ghSettings.owner=cfg.owner;
       if(cfg.repo)ghSettings.repo=cfg.repo;
       if(cfg.branch)ghSettings.branch=cfg.branch;
-      // Decrypt token if not already set locally
-      if(!ghSettings.token&&cfg.encryptedToken){
+      // Decrypt token from repo (always use repo version if available)
+      if(cfg.encryptedToken){
         const t=await decryptToken(cfg.encryptedToken,ADMIN_PWD);
-        if(t){ghSettings.token=t;saveGhSettings();}
+        if(t){ghSettings.token=t;}
       }
       saveGhSettings();
     }
