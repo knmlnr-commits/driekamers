@@ -49,5 +49,10 @@
   "r2_R2": {
     "type": "mp4",
     "src": "media/oli.mov"
+  },
+  "r2_R3": {
+    "type": "photo",
+    "src": "media/dia.png",
+    "caption": ""
   }
 }
