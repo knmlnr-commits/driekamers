@@ -32,6 +32,15 @@
     "src": "media/jak.png",
     "caption": ""
   },
+  "r2_L2": {
+    "type": "photo",
+    "src": "media/eps.jpg",
+    "caption": ""
+  },
+  "r2_L3": {
+    "type": "mp4",
+    "src": "media/tru.mov"
+  },
   "r2_R2": {
     "type": "photo",
     "src": "media/Bart.jpg",
