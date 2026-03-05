@@ -568,26 +568,6 @@ function buildScene(){
       rail.position.set(wallX+(ry>0?.01:-.01),1.0,zm);rail.rotation.y=ry;scene.add(rail);
     }
 
-    // Helper: window with dark exterior
-    function makeWindow(wallX,z,ry,frameColor){
-      const fMat=new THREE.MeshLambertMaterial({color:frameColor});
-      const darkMat=new THREE.MeshLambertMaterial({color:0x020304,emissive:0x010102,emissiveIntensity:.1});
-      const wW=.7,wH=1.1,fT=.05;
-      const ox=ry>0?.02:-.02;
-      // Dark pane (outside view)
-      const pane=new THREE.Mesh(new THREE.PlaneGeometry(wW,wH),darkMat);
-      pane.position.set(wallX+ox,1.8,z);pane.rotation.y=ry;scene.add(pane);
-      // Frame pieces
-      [[0,wH/2+fT/2,wW+fT*2,fT],[0,-wH/2-fT/2,wW+fT*2,fT],[wW/2+fT/2,0,fT,wH],[- wW/2-fT/2,0,fT,wH],[0,0,fT,wH]].forEach(([fx,fy,fw,fh])=>{
-        const f=new THREE.Mesh(new THREE.PlaneGeometry(fw,fh),fMat);
-        f.position.set(wallX+ox*1.5,1.8+fy,z);
-        // Offset frame horizontally
-        const offX=fx*Math.cos(ry);const offZ=fx*(-Math.sin(ry));
-        f.position.x+=offX;f.position.z+=offZ;
-        f.rotation.y=ry;scene.add(f);
-      });
-    }
-
     // ═══════════════════════════════════════════════════════════════
     // KAMER I: DE NIEUWSKAMER — Victorian, chique, warm
     // ═══════════════════════════════════════════════════════════════
@@ -624,15 +604,6 @@ function buildScene(){
 
     // One lonely chair in the back-right corner
     makeChair(2.1,-13.5,-Math.PI*.75,0x121828,0x080e1a);
-
-    // Windows on left wall (dark exterior)
-    makeWindow(-RW/2,-9.0,Math.PI/2,0x121828);
-    makeWindow(-RW/2,-11.5,Math.PI/2,0x121828);
-    makeWindow(-RW/2,-13.8,Math.PI/2,0x121828);
-
-    // Windows on right wall (dark exterior)
-    makeWindow(RW/2,-9.0,-Math.PI/2,0x121828);
-    makeWindow(RW/2,-11.5,-Math.PI/2,0x121828);
 
     // White TL-balk on ceiling
     (function(){
@@ -728,20 +699,6 @@ function buildScene(){
   l1a=ptL(0xffcc66,3.0,14,0,3.2,-3.5);
   ptL(0x8899cc,2.5,14,0,3,-11);
   l3a=ptL(0xff0000,4.2,12,0,3.2,-19);l3b=ptL(0xcc0000,1.9,8,2,1.8,-21.2);l3c=ptL(0xdd0000,1.3,7,-2,2.4,-17.2);
-}
-
-// ── AUDIO ─────────────────────────────────────────────────────────
-let actx=null,curAudio=null;
-function initAudio(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();}
-function makeOsc(type,freq,gain,dest){const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=freq;g.gain.value=gain;o.connect(g);g.connect(dest);o.start();return o;}
-function stopAudio(){if(!curAudio)return;try{curAudio.gain.linearRampToValueAtTime(0,actx.currentTime+1.5);}catch(e){}const n=curAudio.nodes;setTimeout(()=>n.forEach(x=>{try{x.stop&&x.stop();}catch(e){}}),1800);curAudio=null;}
-function playRoom(r){
-  if(!actx)return;stopAudio();
-  const master=actx.createGain();master.gain.setValueAtTime(0,actx.currentTime);master.connect(actx.destination);const nodes=[];
-  if(r===1){master.gain.linearRampToValueAtTime(.042,actx.currentTime+2.6);[[261.63,'sine',.3],[329.63,'sine',.2],[392,'sine',.17],[493.88,'sine',.12],[523.25,'sine',.09]].forEach(([f,t,g])=>nodes.push(makeOsc(t,f,g,master)));const lfo=actx.createOscillator(),lg=actx.createGain();lfo.frequency.value=4.2;lg.gain.value=2.4;lfo.connect(lg);lg.connect(nodes[4].frequency);lfo.start();nodes.push(lfo);}
-  else if(r===2){master.gain.linearRampToValueAtTime(.036,actx.currentTime+2);[[220,'sawtooth',.1],[261.6,'triangle',.09],[311.1,'sawtooth',.078],[369.9,'triangle',.068]].forEach(([f,t,g])=>{const n=makeOsc(t,f,g,master);nodes.push(n);const lfo=actx.createOscillator(),lg=actx.createGain();lfo.frequency.value=1.6+Math.random();lg.gain.value=3+Math.random()*3;lfo.connect(lg);lg.connect(n.frequency);lfo.start();nodes.push(lfo);});}
-  else if(r===3){master.gain.linearRampToValueAtTime(.14,actx.currentTime+.55);const bufLen=actx.sampleRate*2,buf=actx.createBuffer(2,bufLen,actx.sampleRate);for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<bufLen;i++)d[i]=(Math.random()*2-1)*Math.abs(Math.random());}const src=actx.createBufferSource();src.buffer=buf;src.loop=true;src.playbackRate.value=2.5;const dist=actx.createWaveShaper(),curve=new Float32Array(256);for(let i=0;i<256;i++){const x=(i*2)/256-1;curve[i]=(Math.PI+280)*x/(Math.PI+280*Math.abs(x));}dist.curve=curve;const filt=actx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=1200;filt.Q.value=.62;src.connect(dist);dist.connect(filt);filt.connect(master);src.start();nodes.push(src);const drone=actx.createOscillator(),dg=actx.createGain();drone.type='sawtooth';drone.frequency.value=44;dg.gain.value=.052;const dlfo=actx.createOscillator(),dlg=actx.createGain();dlfo.frequency.value=.36;dlg.gain.value=7;dlfo.connect(dlg);dlg.connect(drone.frequency);dlfo.start();drone.connect(dg);dg.connect(master);drone.start();nodes.push(drone,dlfo);}
-  curAudio={gain:master,nodes};
 }
 
 // ── INPUT ─────────────────────────────────────────────────────────
@@ -856,7 +813,7 @@ async function saveConceptTexts(){
 }
 
 const SPOTIFY_LABELS={0:'LUISTER · KAMER I',1:'LUISTER · KAMER II',2:'LUISTER · KAMER III'};
-function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';initAudio();playRoom(r+1);updateSpotifyForRoom();}
+function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';updateSpotifyForRoom();}
 function animate(){
   requestAnimationFrame(animate);tick++;
   if(walking&&!paused&&!mediaOpen&&camT<1){camT=Math.min(camT+speed,1);if(pauseIdx<PAUSES.length&&camT>=PAUSES[pauseIdx][0]){camT=PAUSES[pauseIdx][0];paused=true;const btn=document.getElementById('proceedBtn');btn.textContent=PAUSES[pauseIdx][1];btn.onclick=()=>advance();document.getElementById('proceed').classList.add('show');}}
@@ -872,9 +829,9 @@ function animate(){
   renderer.render(scene,cam);
 }
 animate();
-function advance(){document.getElementById('proceed').classList.remove('show');const next=PAUSES[pauseIdx][2];if(next===null){document.getElementById('ending').classList.add('show');stopAudio();return;}camT=next;paused=false;pauseIdx++;}
-function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;setSpeed(1);const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';document.getElementById('speedControls').classList.remove('show');document.getElementById('spotifyBtn').classList.remove('show');const sp=document.getElementById('spotifyPlayer');sp.classList.remove('show');sp.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
-document.getElementById('startBtn').onclick=()=>{initAudio();const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';document.getElementById('speedControls').classList.add('show');document.getElementById('spotifyBtn').classList.add('show');walking=true;};
+function advance(){document.getElementById('proceed').classList.remove('show');const next=PAUSES[pauseIdx][2];if(next===null){document.getElementById('ending').classList.add('show');return;}camT=next;paused=false;pauseIdx++;}
+function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;tYaw=tPitch=lYaw=lPitch=0;setSpeed(1);const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';document.getElementById('speedControls').classList.remove('show');document.getElementById('spotifyBtn').classList.remove('show');const sp=document.getElementById('spotifyPlayer');sp.classList.remove('show');sp.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
+document.getElementById('startBtn').onclick=()=>{const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';document.getElementById('speedControls').classList.add('show');document.getElementById('spotifyBtn').classList.add('show');walking=true;};
 
 // ── LOAD CONFIG ──────────────────────────────────────────────────
 async function loadConfig(){
