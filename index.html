@@ -373,115 +373,236 @@ function buildScene(){
   const cbl=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,.2,6),new THREE.MeshLambertMaterial({color:0x222}));cbl.position.y=.18;cG.add(cbl);
   for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;const arm=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,.46,5),gmAt);arm.position.set(Math.cos(a)*.24,-.07,Math.sin(a)*.24);arm.rotation.z=Math.PI/2-.32;arm.rotation.y=a;cG.add(arm);const bulb=new THREE.Mesh(new THREE.SphereGeometry(.042,5,4),new THREE.MeshBasicMaterial({color:0xffee88}));bulb.position.set(Math.cos(a)*.44,-.14,Math.sin(a)*.44);cG.add(bulb);}
 
-  // ── FURNITURE ──────────────────────────────────────────────────
+  // ── FURNITURE & ATMOSPHERE ──────────────────────────────────────
   function addFurniture(){
     const boxG=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
     const cylG=(r,h,s)=>new THREE.CylinderGeometry(r,r,h,s||8);
 
-    // Helper: create a simple desk/table
+    // Helper: Victorian table (legs on ground, top at height h)
     function makeTable(x,z,w,d,h,matColor,legColor){
       const tMat=new THREE.MeshLambertMaterial({color:matColor});
       const lMat=new THREE.MeshLambertMaterial({color:legColor||matColor});
       const top=new THREE.Mesh(boxG(w,.04,d),tMat);top.position.set(x,h,z);scene.add(top);
-      const inset=.06;
-      [[-w/2+inset,h/2,-d/2+inset],[w/2-inset,h/2,-d/2+inset],[-w/2+inset,h/2,d/2-inset],[w/2-inset,h/2,d/2-inset]].forEach(([lx,ly,lz])=>{
-        const leg=new THREE.Mesh(boxG(.04,h,.04),lMat);leg.position.set(x+lx,ly,z+lz);scene.add(leg);
+      const inW=w/2-.06, inD=d/2-.06;
+      [[- inW,-inD],[inW,-inD],[-inW,inD],[inW,inD]].forEach(([lx,lz])=>{
+        // Ornate turned legs (stacked cylinders)
+        for(let s=0;s<3;s++){
+          const r=s===1?.035:.025, sh=h/3;
+          const leg=new THREE.Mesh(cylG(r,sh,8),lMat);
+          leg.position.set(x+lx,sh/2+s*sh,z+lz);scene.add(leg);
+        }
       });
     }
 
-    // Helper: simple chair
-    function makeChair(x,z,ry,matColor){
-      const mat=new THREE.MeshLambertMaterial({color:matColor});
-      const seat=new THREE.Mesh(boxG(.4,.03,.38),mat);seat.position.set(x,.5,z);seat.rotation.y=ry;scene.add(seat);
-      const back=new THREE.Mesh(boxG(.4,.5,.03),mat);back.position.set(x-.19*Math.sin(ry),.75+.02,z-.19*Math.cos(ry));back.rotation.y=ry;scene.add(back);
-      [[-0.16,.25,-.14],[.16,.25,-.14],[-.16,.25,.14],[.16,.25,.14]].forEach(([lx,ly,lz])=>{
-        const leg=new THREE.Mesh(boxG(.03,.5,.03),mat);
+    // Helper: Victorian chair with curved back
+    function makeChair(x,z,ry,matColor,velvetColor){
+      const woodMat=new THREE.MeshLambertMaterial({color:matColor});
+      const velvet=new THREE.MeshLambertMaterial({color:velvetColor||0x2a0808});
+      // Seat
+      const seat=new THREE.Mesh(boxG(.42,.035,.4),velvet);seat.position.set(x,.48,z);seat.rotation.y=ry;scene.add(seat);
+      // Back (upholstered)
+      const backX=x-.2*Math.sin(ry), backZ=z-.2*Math.cos(ry);
+      const back=new THREE.Mesh(boxG(.42,.55,.04),velvet);back.position.set(backX,.78,backZ);back.rotation.y=ry;scene.add(back);
+      // Back frame top
+      const topRail=new THREE.Mesh(boxG(.46,.04,.06),woodMat);topRail.position.set(backX,1.07,backZ);topRail.rotation.y=ry;scene.add(topRail);
+      // 4 legs
+      [[-0.17,-.16],[.17,-.16],[-.17,.16],[.17,.16]].forEach(([lx,lz])=>{
         const cx=lx*Math.cos(ry)-lz*Math.sin(ry), cz=lx*Math.sin(ry)+lz*Math.cos(ry);
-        leg.position.set(x+cx,ly,z+cz);scene.add(leg);
+        const leg=new THREE.Mesh(cylG(.02,.48,6),woodMat);
+        leg.position.set(x+cx,.24,z+cz);scene.add(leg);
       });
     }
 
-    // Helper: bookshelf
+    // Helper: bookshelf flat against wall
     function makeBookshelf(x,z,ry,matColor,bookColors){
       const mat=new THREE.MeshLambertMaterial({color:matColor});
-      const w=.9,h=1.8,d=.3;
-      // Back
+      const w=.9,h=1.8,d=.25;
+      // Back panel against wall
       const bk=new THREE.Mesh(boxG(w,h,.02),mat);bk.position.set(x,h/2,z);bk.rotation.y=ry;scene.add(bk);
-      // Shelves
+      // Side panels
+      [-1,1].forEach(side=>{
+        const sp=new THREE.Mesh(boxG(.02,h,d),mat);
+        const ox=side*w/2;
+        sp.position.set(x+ox*Math.cos(ry),h/2,z+ox*Math.sin(ry));sp.rotation.y=ry;scene.add(sp);
+      });
+      // 5 shelves
       for(let i=0;i<5;i++){
-        const sy=i*(h/4);
+        const sy=i*(h/4)+.01;
         const shelf=new THREE.Mesh(boxG(w,.025,d),mat);
-        shelf.position.set(x-d/2*Math.sin(ry),sy,z-d/2*Math.cos(ry));shelf.rotation.y=ry;scene.add(shelf);
+        const offZ=-d/2;
+        shelf.position.set(x+offZ*(-Math.sin(ry)),sy,z+offZ*(-Math.cos(ry)));shelf.rotation.y=ry;scene.add(shelf);
       }
       // Books on shelves
       bookColors.forEach((col,si)=>{
         const sy=si*(h/4)+.06;
-        for(let b=0;b<4+Math.floor(Math.random()*3);b++){
-          const bw=.06+Math.random()*.04,bh=.2+Math.random()*.12;
+        for(let b=0;b<5+Math.floor(Math.random()*2);b++){
+          const bw=.05+Math.random()*.04,bh=.18+Math.random()*.14;
           const bMat=new THREE.MeshLambertMaterial({color:col[b%col.length]});
-          const book=new THREE.Mesh(boxG(bw,bh,.18),bMat);
-          const ox=-w/2+.08+b*.11;
-          const bx=x+(ox*Math.cos(ry)-d/2*Math.sin(ry));
-          const bz=z+(ox*Math.sin(ry)-d/2*Math.cos(ry));
+          const book=new THREE.Mesh(boxG(bw,bh,.16),bMat);
+          const ox=-w/2+.07+b*.1;
+          const offZ=-d/2;
+          const bx=x+ox*Math.cos(ry)+offZ*(-Math.sin(ry));
+          const bz=z+ox*Math.sin(ry)+offZ*(-Math.cos(ry));
           book.position.set(bx,sy+bh/2,bz);book.rotation.y=ry;scene.add(book);
         }
       });
     }
 
-    // Helper: standing lamp
+    // Helper: standing lamp with ornate shade
     function makeLamp(x,z,poleColor,shadeColor){
       const poleMat=new THREE.MeshLambertMaterial({color:poleColor});
       const shadeMat=new THREE.MeshLambertMaterial({color:shadeColor,emissive:shadeColor,emissiveIntensity:.3});
-      const base=new THREE.Mesh(cylG(.12,.02,12),poleMat);base.position.set(x,.01,z);scene.add(base);
-      const pole=new THREE.Mesh(cylG(.015,1.5,6),poleMat);pole.position.set(x,.76,z);scene.add(pole);
-      const shade=new THREE.Mesh(new THREE.ConeGeometry(.15,.2,8,1,true),shadeMat);shade.position.set(x,1.56,z);scene.add(shade);
+      const base=new THREE.Mesh(cylG(.14,.03,12),poleMat);base.position.set(x,.015,z);scene.add(base);
+      const pole=new THREE.Mesh(cylG(.018,1.4,6),poleMat);pole.position.set(x,.73,z);scene.add(pole);
+      // Decorative bulge
+      const bulge=new THREE.Mesh(new THREE.SphereGeometry(.035,6,4),poleMat);bulge.position.set(x,.45,z);scene.add(bulge);
+      const shade=new THREE.Mesh(new THREE.ConeGeometry(.18,.22,8,1,true),shadeMat);shade.position.set(x,1.5,z);scene.add(shade);
+      // Warm glow
+      const glow=new THREE.PointLight(new THREE.Color(shadeColor).getHex(),.4,3);glow.position.set(x,1.45,z);scene.add(glow);
     }
 
-    // ── KAMER I: De Nieuwskamer (newsroom feel) ──
-    // Reading desk left side
-    makeTable(-1.8,-2.5,1.2,.6,.78,0x5c3a1a,0x3d2510);
-    // Chair at desk
-    makeChair(-1.8,-2.1,0,0x3d2510);
-    // Bookshelf on back wall area (left side)
-    makeBookshelf(-2.5,-0.5,Math.PI/2,0x4a2e12,
+    // Helper: decorative rug (flat on floor)
+    function makeRug(x,z,w,d,color,borderColor){
+      const mat=new THREE.MeshLambertMaterial({color,side:DS});
+      const rug=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);rug.position.set(x,.005,z);rug.rotation.x=-Math.PI/2;scene.add(rug);
+      // Border
+      const bMat=new THREE.MeshLambertMaterial({color:borderColor,side:DS});
+      const bw=.06;
+      [[0,d/2-bw/2,w,bw],[0,-d/2+bw/2,w,bw],[w/2-bw/2,0,bw,d],[-w/2+bw/2,0,bw,d]].forEach(([bx,bz,bW,bD])=>{
+        const b=new THREE.Mesh(new THREE.PlaneGeometry(bW,bD),bMat);b.position.set(x+bx,.006,z+bz);b.rotation.x=-Math.PI/2;scene.add(b);
+      });
+    }
+
+    // Helper: side table with vase
+    function makeVaseTable(x,z,matColor){
+      const mat=new THREE.MeshLambertMaterial({color:matColor});
+      // Small round table
+      const top=new THREE.Mesh(cylG(.2,.03,10),mat);top.position.set(x,.65,z);scene.add(top);
+      const pole=new THREE.Mesh(cylG(.03,.62,6),mat);pole.position.set(x,.325,z);scene.add(pole);
+      const base=new THREE.Mesh(cylG(.15,.03,10),mat);base.position.set(x,.015,z);scene.add(base);
+      // Vase on top
+      const vaseMat=new THREE.MeshLambertMaterial({color:0x1a3a5a,emissive:0x0a1a2a,emissiveIntensity:.3});
+      const vaseBody=new THREE.Mesh(cylG(.06,.15,8),vaseMat);vaseBody.position.set(x,.74,z);scene.add(vaseBody);
+      const vaseNeck=new THREE.Mesh(cylG(.03,.06,8),vaseMat);vaseNeck.position.set(x,.84,z);scene.add(vaseNeck);
+      const vaseRim=new THREE.Mesh(cylG(.04,.015,8),vaseMat);vaseRim.position.set(x,.87,z);scene.add(vaseRim);
+    }
+
+    // Helper: wallpaper pattern (decorative strips on walls)
+    function addWallpaper(wallX,z0,z1,ry,patternColor){
+      const len=Math.abs(z1-z0);const zm=(z0+z1)/2;
+      const pMat=new THREE.MeshLambertMaterial({color:patternColor,side:DS,transparent:true,opacity:.15});
+      // Vertical decorative strips
+      for(let i=0;i<Math.floor(len/.8);i++){
+        const sz=z0-.4-i*.8;
+        const strip=new THREE.Mesh(new THREE.PlaneGeometry(.01,RH),pMat);
+        strip.position.set(wallX+(ry>0?.01:-.01),RH/2,sz);strip.rotation.y=ry;scene.add(strip);
+      }
+      // Dado rail (horizontal molding strip)
+      const railMat=new THREE.MeshLambertMaterial({color:patternColor,side:DS,transparent:true,opacity:.25});
+      const rail=new THREE.Mesh(new THREE.PlaneGeometry(len,.02),railMat);
+      rail.position.set(wallX+(ry>0?.01:-.01),1.0,zm);rail.rotation.y=ry;scene.add(rail);
+    }
+
+    // Helper: window with dark exterior
+    function makeWindow(wallX,z,ry,frameColor){
+      const fMat=new THREE.MeshLambertMaterial({color:frameColor});
+      const darkMat=new THREE.MeshLambertMaterial({color:0x020304,emissive:0x010102,emissiveIntensity:.1});
+      const wW=.7,wH=1.1,fT=.05;
+      const ox=ry>0?.02:-.02;
+      // Dark pane (outside view)
+      const pane=new THREE.Mesh(new THREE.PlaneGeometry(wW,wH),darkMat);
+      pane.position.set(wallX+ox,1.8,z);pane.rotation.y=ry;scene.add(pane);
+      // Frame pieces
+      [[0,wH/2+fT/2,wW+fT*2,fT],[0,-wH/2-fT/2,wW+fT*2,fT],[wW/2+fT/2,0,fT,wH],[- wW/2-fT/2,0,fT,wH],[0,0,fT,wH]].forEach(([fx,fy,fw,fh])=>{
+        const f=new THREE.Mesh(new THREE.PlaneGeometry(fw,fh),fMat);
+        f.position.set(wallX+ox*1.5,1.8+fy,z);
+        // Offset frame horizontally
+        const offX=fx*Math.cos(ry);const offZ=fx*(-Math.sin(ry));
+        f.position.x+=offX;f.position.z+=offZ;
+        f.rotation.y=ry;scene.add(f);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // KAMER I: DE NIEUWSKAMER — Victorian, chique, warm
+    // ═══════════════════════════════════════════════════════════════
+
+    // Wallpaper pattern on both walls
+    addWallpaper(-RW/2+.01,0,-7,Math.PI/2,0xd4a820);
+    addWallpaper(RW/2-.01,0,-7,-Math.PI/2,0xd4a820);
+
+    // Elegant Persian rug on the floor
+    makeRug(0,-3.5,3.2,4.5,0x6a1a1a,0xd4a820);
+
+    // Victorian writing desk (center-left, properly on floor)
+    makeTable(-1.6,-2.0,1.0,.5,.74,0x4a2810,0x3d2510);
+    // Velvet chair at desk
+    makeChair(-1.6,-1.4,Math.PI,0x4a2810,0x3a0a1a);
+
+    // Bookshelf against left wall
+    makeBookshelf(-2.85,-0.8,Math.PI/2,0x3a1e0a,
       [[0x1a2844,0x8b1a1a,0x2a4a2a,0x6b5a2a],[0x3a1818,0x1a3a4a,0x4a3a1a],[0x2a2a4a,0x5a2a1a,0x1a4a2a],[0x4a1a1a,0x2a3a5a]]);
-    // Standing lamp right side
-    makeLamp(2.2,-1.5,0x443322,0xffcc66);
-    // Small table right side
-    makeTable(1.8,-5.0,.7,.5,.6,0x5c3a1a,0x3d2510);
 
-    // ── KAMER II: De Twijfelkamer (uncertain, minimal) ──
-    // Sparse table center-left
-    makeTable(-1.5,-10.5,.8,.5,.72,0x2a3a1a,0x1a2a10);
-    // Two chairs facing each other
-    makeChair(-1.5,-10.0,Math.PI,0x1e2e12);
-    makeChair(-1.5,-11.0,0,0x1e2e12);
-    // Standing lamp
-    makeLamp(2.3,-9.0,0x1a2a1a,0x3a6a2a);
-    // Small shelf
-    makeBookshelf(-2.5,-12.5,Math.PI/2,0x1a2a12,
-      [[0x1a3a1a,0x2a4a2a,0x0a2a0a],[0x3a4a2a,0x1a2a3a],[0x2a3a1a,0x1a4a3a],[0x0a2a0a,0x3a5a2a]]);
+    // Standing lamp (warm, Victorian)
+    makeLamp(2.3,-1.5,0x5a3a20,0xffcc66);
 
-    // ── KAMER III: De Propagandakamer (heavy, oppressive) ──
-    // Heavy podium/desk
-    const podMat=new THREE.MeshLambertMaterial({color:0x2a0404});
-    const podTop=new THREE.Mesh(boxG(1.6,.08,.7),podMat);podTop.position.set(0,.9,-17.5);scene.add(podTop);
-    const podFront=new THREE.Mesh(boxG(1.6,.9,.04),podMat);podFront.position.set(0,.45,-17.15);scene.add(podFront);
-    const podSideL=new THREE.Mesh(boxG(.04,.9,.7),podMat);podSideL.position.set(-.78,.45,-17.5);scene.add(podSideL);
-    const podSideR=new THREE.Mesh(boxG(.04,.9,.7),podMat);podSideR.position.set(.78,.45,-17.5);scene.add(podSideR);
-    // Emblem on podium front
-    const embMat=new THREE.MeshLambertMaterial({color:0xaa0000,emissive:0x440000,emissiveIntensity:.5});
-    const emblem=new THREE.Mesh(new THREE.CircleGeometry(.18,6),embMat);emblem.position.set(0,.5,-17.13);scene.add(emblem);
-    // Standing lamp (ominous red)
-    makeLamp(2.2,-18.5,0x2a0808,0xcc2222);
-    makeLamp(-2.2,-20.0,0x2a0808,0xcc2222);
-    // Heavy chair behind podium
-    const hcMat=new THREE.MeshLambertMaterial({color:0x3a0606});
-    const hcSeat=new THREE.Mesh(boxG(.55,.04,.45),hcMat);hcSeat.position.set(0,.55,-18.0);scene.add(hcSeat);
-    const hcBack=new THREE.Mesh(boxG(.55,.8,.04),hcMat);hcBack.position.set(0,.95,-18.2);scene.add(hcBack);
-    [[-0.22,.27,-.18],[.22,.27,-.18],[-.22,.27,.18],[.22,.27,.18]].forEach(([lx,ly,lz])=>{
-      const leg=new THREE.Mesh(boxG(.04,.55,.04),hcMat);leg.position.set(lx,ly,-18.0+lz);scene.add(leg);
-    });
+    // Side table with decorative vase
+    makeVaseTable(2.2,-5.2,0x4a2810);
+
+    // Second velvet chair (reading nook, right side)
+    makeChair(2.0,-3.8,-Math.PI/2,0x4a2810,0x1a0a2a);
+
+    // ═══════════════════════════════════════════════════════════════
+    // KAMER II: DE TWIJFELKAMER — Minimal, green, slightly dark
+    // Only a single lonely chair in the corner. Windows with dark outside.
+    // ═══════════════════════════════════════════════════════════════
+
+    // One lonely chair in the back-right corner
+    makeChair(2.1,-13.5,-Math.PI*.75,0x1a2a12,0x0e1e08);
+
+    // Windows on left wall (dark exterior)
+    makeWindow(-RW/2,-9.0,Math.PI/2,0x1a2a12);
+    makeWindow(-RW/2,-11.5,Math.PI/2,0x1a2a12);
+    makeWindow(-RW/2,-13.8,Math.PI/2,0x1a2a12);
+
+    // Windows on right wall (dark exterior)
+    makeWindow(RW/2,-9.0,-Math.PI/2,0x1a2a12);
+    makeWindow(RW/2,-11.5,-Math.PI/2,0x1a2a12);
+
+    // ═══════════════════════════════════════════════════════════════
+    // KAMER III: DE PROPAGANDAKAMER — NO furniture, NO windows
+    // Bloody bare walls. Only the paintings and the quote at the end.
+    // Blood drip effect on walls
+    // ═══════════════════════════════════════════════════════════════
+
+    // Blood drips/stains on left wall
+    const bloodMat=new THREE.MeshLambertMaterial({color:0x4a0000,transparent:true,opacity:.5,side:DS});
+    for(let i=0;i<12;i++){
+      const sz=-15.5-Math.random()*7;
+      const sy=RH-Math.random()*1.2;
+      const dripH=.3+Math.random()*1.5;
+      const dripW=.04+Math.random()*.08;
+      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),bloodMat);
+      drip.position.set(-RW/2+.01,sy-dripH/2,sz);drip.rotation.y=Math.PI/2;scene.add(drip);
+    }
+    // Blood drips on right wall
+    for(let i=0;i<12;i++){
+      const sz=-15.5-Math.random()*7;
+      const sy=RH-Math.random()*1.2;
+      const dripH=.3+Math.random()*1.5;
+      const dripW=.04+Math.random()*.08;
+      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),bloodMat);
+      drip.position.set(RW/2-.01,sy-dripH/2,sz);drip.rotation.y=-Math.PI/2;scene.add(drip);
+    }
+    // Blood splatter on floor
+    const splatMat=new THREE.MeshLambertMaterial({color:0x3a0000,transparent:true,opacity:.35,side:DS});
+    for(let i=0;i<8;i++){
+      const sx=-1.5+Math.random()*3;
+      const sz=-16-Math.random()*6;
+      const r=.15+Math.random()*.35;
+      const splat=new THREE.Mesh(new THREE.CircleGeometry(r,6),splatMat);
+      splat.position.set(sx,.003,sz);splat.rotation.x=-Math.PI/2;scene.add(splat);
+    }
   }
   addFurniture();
 
@@ -566,13 +687,16 @@ window.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();setSpeed(Math.max(0,curSpeedIdx-1));}
   else if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();setSpeed(Math.min(2,curSpeedIdx+1));}
 });
-// Spotify URLs per room (configure these)
-const SPOTIFY_URLS={
-  0:'', // Kamer I
-  1:'', // Kamer II
-  2:''  // Kamer III
-};
+// Spotify URLs per room (managed via admin)
+const SPOTIFY_URLS={0:'',1:'',2:''};
 function openSpotify(){const url=SPOTIFY_URLS[curRoom];if(url)window.open(url,'_blank');else showToast('Spotify nog niet ingesteld voor deze kamer');}
+async function loadSpotify(){
+  try{const r=await safeStore.get('spotify_urls');if(r){const d=JSON.parse(r.value);Object.assign(SPOTIFY_URLS,d);}}catch(e){}
+  try{const resp=await fetch('media-config.json');if(resp.ok){const cfg=await resp.json();if(cfg._spotify){for(const k in cfg._spotify){if(!SPOTIFY_URLS[k])SPOTIFY_URLS[k]=cfg._spotify[k];}}}}catch(e){}
+}
+async function saveSpotifyUrls(){
+  await safeStore.set('spotify_urls',JSON.stringify(SPOTIFY_URLS));
+}
 
 const SPOTIFY_LABELS={0:'LUISTER · KAMER I',1:'LUISTER · KAMER II',2:'LUISTER · KAMER III'};
 function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';initAudio();playRoom(r+1);}
@@ -635,7 +759,23 @@ function buildGrid(){
     {name:'KAMER II — DE TWIJFELKAMER',col:'#3a6e2a',keys:['r2_L1','r2_L2','r2_L3','r2_R1','r2_R2','r2_R3']},
     {name:'KAMER III — DE PROPAGANDAKAMER',col:'#8a1a1a',keys:['r3_L1','r3_L2','r3_L3','r3_R1','r3_R2','r3_R3']},
   ];
-  document.getElementById('adminGrid').innerHTML=rooms.map(r=>`
+  const spotifyNames={0:'Kamer I — De Nieuwskamer',1:'Kamer II — De Twijfelkamer',2:'Kamer III — De Propagandakamer'};
+  const spotifyCols={0:'#b8960a',1:'#3a6e2a',2:'#8a1a1a'};
+  const spotifySection=`<div class="roomSec"><h3><span class="rDot" style="background:#1DB954"></span>SPOTIFY — MUZIEK PER KAMER</h3>
+    <div style="padding:.5rem 0;font-size:.56rem;color:#4a6a4a;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
+      Plak een Spotify-link per kamer. Gebruik "Delen → Link kopiëren" in Spotify.<br>
+      Bijv: <code style="background:#111;padding:1px 5px">https://open.spotify.com/track/...</code>
+    </div>
+    ${[0,1,2].map(i=>`<div style="margin-bottom:.7rem">
+      <label style="display:block;font-size:.5rem;letter-spacing:.2em;color:${spotifyCols[i]};margin-bottom:.3rem">${spotifyNames[i]}</label>
+      <div style="display:flex;gap:.4rem;align-items:center">
+        <input type="text" id="spotIn${i}" value="${SPOTIFY_URLS[i]||''}" placeholder="https://open.spotify.com/track/..." style="flex:1;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none">
+        ${SPOTIFY_URLS[i]?`<span style="color:#1DB954;font-size:.7rem">✓</span>`:''}
+      </div>
+    </div>`).join('')}
+    <button class="abtn pri" onclick="saveSpotifyAdmin()" style="margin-top:.3rem">SPOTIFY OPSLAAN</button>
+  </div>`;
+  document.getElementById('adminGrid').innerHTML=spotifySection+rooms.map(r=>`
     <div class="roomSec"><h3><span class="rDot" style="background:${r.col}"></span>${r.name}</h3>
     <div class="pGrid">${r.keys.map(k=>{const s=statText(MEDIA[k]);return`<div class="pCard"><div class="pKey">${k}</div><div class="pStat ${s.has?'has':''}">${s.t}</div><button class="abtn" style="font-size:.56rem" onclick="openEdit('${k}')">✎ BEWERKEN</button></div>`;}).join('')}</div></div>
   `).join('');
@@ -828,12 +968,20 @@ async function saveEdit(){
 }
 
 function downloadConfig(){
-  // Sla alleen niet-null waarden op; base64 data blijft bewaard, paden ook
   const cfg={};
   MKEYS.forEach(k=>{if(MEDIA[k])cfg[k]=MEDIA[k];});
+  // Include Spotify URLs
+  const sp={};[0,1,2].forEach(i=>{if(SPOTIFY_URLS[i])sp[i]=SPOTIFY_URLS[i];});
+  if(Object.keys(sp).length)cfg._spotify=sp;
   const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='media-config.json';a.click();URL.revokeObjectURL(a.href);
   showToast('Download gestart — upload naar GitHub repo root');
+}
+async function saveSpotifyAdmin(){
+  for(let i=0;i<3;i++){const v=(document.getElementById(`spotIn${i}`)?.value||'').trim();SPOTIFY_URLS[i]=v;}
+  await saveSpotifyUrls();
+  showToast('Spotify-links opgeslagen');
+  buildGrid();
 }
 async function clearEdit(){
   MEDIA[editingKey]=null;refreshPainting(editingKey);
@@ -844,6 +992,7 @@ async function clearEdit(){
 // ── ASYNC INIT (load config + storage → build scene) ────────────
 (async()=>{
   await loadConfig();
+  await loadSpotify();
   for(const key of MKEYS){
     const r=await safeStore.get(`painting:${key}`);
     if(r)try{MEDIA[key]=JSON.parse(r.value);}catch(e){}
