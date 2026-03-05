@@ -54,5 +54,14 @@
     "type": "photo",
     "src": "media/dia.png",
     "caption": ""
+  },
+  "r3_L1": {
+    "type": "photo",
+    "src": "media/isr.png",
+    "caption": ""
+  },
+  "r3_L2": {
+    "type": "mp4",
+    "src": "media/ato.mp4"
   }
 }
