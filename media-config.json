@@ -76,5 +76,10 @@
   "r3_R2": {
     "type": "mp4",
     "src": "media/isr2.mp4"
+  },
+  "r3_R3": {
+    "type": "photo",
+    "src": "media/tru1.png",
+    "caption": ""
   }
 }
