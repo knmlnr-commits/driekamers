@@ -514,7 +514,7 @@ function renderFields(){
   if(curEditType==='photo'){
     const hasImg=cur?.src?.startsWith('data:');const hasPath=isPath(cur?.src);
     f.innerHTML=`
-      <div class="eField"><label>Optie 1 — Uploaden (max 25 MB, alleen claude.ai)</label>
+      <div class="eField"><label>Optie 1 — Bestand uploaden</label>
         <label class="fLabel"><input type="file" id="fi" accept="image/*" onchange="prevFile(this,'ip')"><span id="fs">${hasImg?'✓ Bestand geladen — klik om te wijzigen':'Klik om foto te kiezen…'}</span></label>
         ${hasImg?`<img id="ip" class="prevImg" src="${cur.src}">`:''}</div>
       <div class="eField"><label>Optie 2 — Lokaal pad (voor GitHub Pages)</label>
@@ -524,7 +524,7 @@ function renderFields(){
   }else if(curEditType==='audio'){
     const hasAud=cur?.src?.startsWith('data:');const hasPath=isPath(cur?.src);
     f.innerHTML=`
-      <div class="eField"><label>Optie 1 — Uploaden (max 25 MB, alleen claude.ai)</label>
+      <div class="eField"><label>Optie 1 — Bestand uploaden</label>
         <label class="fLabel"><input type="file" id="fi" accept="audio/*" onchange="prevFile(this,'ap')"><span id="fs">${hasAud?'✓ Bestand geladen — klik om te wijzigen':'Klik om audiobestand te kiezen…'}</span></label>
         ${hasAud?`<audio id="ap" class="prevAud" controls src="${cur.src}"></audio>`:''}
         <p class="wTxt">⚠ MP3, WAV, OGG ondersteund</p></div>
@@ -535,7 +535,7 @@ function renderFields(){
   }else if(curEditType==='mp4'){
     const hasVid=cur?.src?.startsWith('data:');const hasPath=isPath(cur?.src);
     f.innerHTML=`
-      <div class="eField"><label>Optie 1 — Uploaden (max 25 MB, alleen claude.ai)</label>
+      <div class="eField"><label>Optie 1 — Bestand uploaden</label>
         <label class="fLabel"><input type="file" id="fi" accept="video/mp4,video/*" onchange="prevFile(this,null)"><span id="fs">${hasVid?'✓ Bestand geladen — klik om te wijzigen':'Klik om MP4 te kiezen…'}</span></label>
         <p class="wTxt">⚠ Gebruik YouTube voor grote bestanden.</p></div>
       <div class="eField"><label>Optie 2 — Lokaal pad (voor GitHub Pages)</label>
@@ -558,6 +558,21 @@ function prevFile(input,prevId){
 
 function fileToB64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
 const MAX=25*1024*1024;
+
+// Upload file to server, returns {path, filename} or null
+async function serverUpload(file){
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const r=await fetch('/upload',{method:'POST',body:fd});
+    if(!r.ok)return null;
+    return await r.json();
+  }catch(e){return null;}
+}
+// Save current media-config.json to server
+async function serverSaveConfig(){
+  const cfg={};MKEYS.forEach(k=>{if(MEDIA[k])cfg[k]=MEDIA[k];});
+  try{await fetch('/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});}catch(e){}
+}
 const STORAGE_MAX=4.8*1024*1024; // window.storage limit per key
 
 // Storage wrapper:
@@ -633,25 +648,39 @@ async function saveEdit(){
   const prog=document.getElementById('eProg');prog.textContent='';
   if(curEditType==='none'){await clearEdit();return;}
   let newMedia=null;
+
+  // Helper: upload file to server → returns path, or falls back to base64
+  async function resolveFile(acceptType){
+    const file=document.getElementById('fi')?.files[0];
+    const pathVal=(document.getElementById('pi')?.value||'').trim();
+    let src=MEDIA[editingKey]?.type===acceptType?MEDIA[editingKey].src:null;
+    if(file){
+      prog.textContent='Uploaden naar media/ …';
+      const result=await serverUpload(file);
+      if(result&&result.path){src=result.path;}
+      else{
+        // Server not available — fall back to base64
+        if(file.size>MAX){prog.textContent=`❌ Te groot (${(file.size/1024/1024).toFixed(1)} MB). Start server.py of gebruik een kleiner bestand.`;return null;}
+        prog.textContent='Server niet bereikbaar — opslaan als base64…';
+        src=await fileToB64(file);
+      }
+    }else if(pathVal){src=pathVal;}
+    return src;
+  }
+
   if(curEditType==='photo'){
-    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
-    let src=MEDIA[editingKey]?.type==='photo'?MEDIA[editingKey].src:null;
-    if(file){if(file.size>MAX){prog.textContent=`❌ Te groot (${(file.size/1024/1024).toFixed(1)} MB). Max 25 MB`;return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    else if(pathVal){src=pathVal;}
+    const src=await resolveFile('photo');
+    if(src===null)return;
     if(!src){prog.textContent='❌ Geen foto gekozen of pad ingevuld';return;}
     newMedia={type:'photo',src,caption:document.getElementById('ci')?.value||''};
   }else if(curEditType==='audio'){
-    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
-    let src=MEDIA[editingKey]?.type==='audio'?MEDIA[editingKey].src:null;
-    if(file){if(file.size>MAX){prog.textContent=`❌ Te groot. Max 25 MB`;return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    else if(pathVal){src=pathVal;}
+    const src=await resolveFile('audio');
+    if(src===null)return;
     if(!src){prog.textContent='❌ Geen audiobestand gekozen of pad ingevuld';return;}
     newMedia={type:'audio',src,label:document.getElementById('li')?.value||''};
   }else if(curEditType==='mp4'){
-    const file=document.getElementById('fi')?.files[0];const pathVal=(document.getElementById('pi')?.value||'').trim();
-    let src=MEDIA[editingKey]?.type==='mp4'?MEDIA[editingKey].src:null;
-    if(file){if(file.size>MAX){prog.textContent='❌ Te groot (max 25 MB). Gebruik YouTube voor grotere video\'s.';return;}prog.textContent='Laden…';src=await fileToB64(file);}
-    else if(pathVal){src=pathVal;}
+    const src=await resolveFile('mp4');
+    if(src===null)return;
     if(!src){prog.textContent='❌ Geen videobestand gekozen of pad ingevuld';return;}
     newMedia={type:'mp4',src};
   }else if(curEditType==='youtube'){
@@ -663,17 +692,16 @@ async function saveEdit(){
     newMedia={type:'youtube',ytId,start:ts?ts[1]:0,original};
   }
   prog.textContent='Opslaan…';
-  // Apply to memory immediately
   MEDIA[editingKey]=newMedia;refreshPainting(editingKey);
-  // Try to persist (files >4.8 MB base64 exceed storage limit per key)
+  // Persist to browser storage
   const encoded=JSON.stringify(newMedia);
   if(encoded.length<=STORAGE_MAX){
-    const ok=await safeStore.set(`painting:${editingKey}`,encoded);
-    prog.textContent=ok?'✅ Opgeslagen in browser — blijft na refresh bewaard':'✅ Geladen (opslag mislukt — probeer een kleiner bestand)';
-  }else{
-    prog.textContent=`✅ Opgeslagen in browser — blijft na refresh bewaard (${(encoded.length/1024/1024).toFixed(1)} MB).`;
+    await safeStore.set(`painting:${editingKey}`,encoded);
   }
-  setTimeout(()=>{closeEdit();buildGrid();},1400);
+  // Auto-save media-config.json on server
+  await serverSaveConfig();
+  prog.textContent='✅ Opgeslagen!';
+  setTimeout(()=>{closeEdit();buildGrid();},1200);
 }
 
 function downloadConfig(){
@@ -687,6 +715,7 @@ function downloadConfig(){
 async function clearEdit(){
   MEDIA[editingKey]=null;refreshPainting(editingKey);
   await safeStore.delete(`painting:${editingKey}`);
+  await serverSaveConfig();
   closeEdit();buildGrid();
 }
 
