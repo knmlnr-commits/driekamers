@@ -69,6 +69,9 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
 #spotifyBtn.show{opacity:1;pointer-events:all}
 #spotifyBtn:hover{background:rgba(30,215,96,.22);border-color:rgba(30,215,96,.6);color:rgba(30,215,96,.95)}
 #spotifyBtn svg{width:16px;height:16px;fill:currentColor}
+#spotifyPlayer{position:fixed;bottom:3.5rem;right:1.2rem;width:320px;height:80px;border-radius:8px;overflow:hidden;opacity:0;pointer-events:none;transition:all .4s;z-index:19;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+#spotifyPlayer.show{opacity:1;pointer-events:all}
+#spotifyPlayer iframe{width:100%;height:100%;border:none}
 /* Admin overlay */
 #adminOverlay{position:fixed;inset:0;background:rgba(0,0,0,.97);display:none;align-items:flex-start;justify-content:center;z-index:500;overflow-y:auto;padding:1.5rem 1rem}
 #adminBox{background:#080808;border:1px solid #252525;width:min(860px,100%);margin:0 auto}
@@ -144,10 +147,11 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
   <button class="speedBtn" id="speedFast" onclick="setSpeed(2)" title="Snel">▸▸▸</button>
 </div>
 
-<div id="spotifyBtn" onclick="openSpotify()">
+<div id="spotifyBtn" onclick="toggleSpotify()">
   <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
   <span id="spotifyLabel">LUISTER</span>
 </div>
+<div id="spotifyPlayer"></div>
 
 <div id="mOverlay" onclick="handleOverlayClick(event)">
   <div id="mInner" onclick="event.stopPropagation()">
@@ -692,7 +696,37 @@ window.addEventListener('keydown',e=>{
 });
 // Spotify URLs per room (managed via admin)
 const SPOTIFY_URLS={0:'',1:'',2:''};
-function openSpotify(){const url=SPOTIFY_URLS[curRoom];if(url)window.open(url,'_blank');else showToast('Spotify nog niet ingesteld voor deze kamer');}
+// Concept page texts (managed via admin CMS)
+const CONCEPT_TEXTS={};
+let spotifyOpen=false,spotifyLoadedRoom=-1;
+function spotifyEmbedUrl(url){
+  if(!url)return null;
+  // Convert open.spotify.com/track/xxx to embed URL
+  const m=url.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/([a-zA-Z0-9]+)/);
+  if(m)return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0`;
+  return null;
+}
+function toggleSpotify(){
+  const player=document.getElementById('spotifyPlayer');
+  if(spotifyOpen){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
+  const url=SPOTIFY_URLS[curRoom];
+  if(!url){showToast('Spotify nog niet ingesteld voor deze kamer');return;}
+  const embed=spotifyEmbedUrl(url);
+  if(!embed){showToast('Ongeldige Spotify-link — gebruik een link van open.spotify.com');return;}
+  player.innerHTML=`<iframe src="${embed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  player.classList.add('show');spotifyOpen=true;spotifyLoadedRoom=curRoom;
+}
+function updateSpotifyForRoom(){
+  if(!spotifyOpen)return;
+  if(spotifyLoadedRoom===curRoom)return;
+  const url=SPOTIFY_URLS[curRoom];
+  const player=document.getElementById('spotifyPlayer');
+  if(!url){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
+  const embed=spotifyEmbedUrl(url);
+  if(!embed){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
+  player.innerHTML=`<iframe src="${embed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  spotifyLoadedRoom=curRoom;
+}
 async function loadSpotify(){
   // Laad eerst lokale overrides
   try{const r=await safeStore.get('spotify_urls');if(r){const d=JSON.parse(r.value);Object.assign(SPOTIFY_URLS,d);}}catch(e){}
@@ -702,9 +736,16 @@ async function loadSpotify(){
 async function saveSpotifyUrls(){
   await safeStore.set('spotify_urls',JSON.stringify(SPOTIFY_URLS));
 }
+async function loadConcept(){
+  try{const r=await safeStore.get('concept_texts');if(r){Object.assign(CONCEPT_TEXTS,JSON.parse(r.value));}}catch(e){}
+  try{const resp=await fetch('media-config.json');if(resp.ok){const cfg=await resp.json();if(cfg._concept){for(const k in cfg._concept)CONCEPT_TEXTS[k]=cfg._concept[k];}}}catch(e){}
+}
+async function saveConceptTexts(){
+  await safeStore.set('concept_texts',JSON.stringify(CONCEPT_TEXTS));
+}
 
 const SPOTIFY_LABELS={0:'LUISTER · KAMER I',1:'LUISTER · KAMER II',2:'LUISTER · KAMER III'};
-function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';initAudio();playRoom(r+1);}
+function checkRoom(pz){const r=(pz>-7)?0:(pz>-15)?1:2;if(r===curRoom)return;curRoom=r;['d1','d2','d3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<=r));document.getElementById('spotifyLabel').textContent=SPOTIFY_LABELS[r]||'LUISTER';initAudio();playRoom(r+1);updateSpotifyForRoom();}
 function animate(){
   requestAnimationFrame(animate);tick++;
   if(walking&&!paused&&!mediaOpen&&camT<1){camT=Math.min(camT+speed,1);if(pauseIdx<PAUSES.length&&camT>=PAUSES[pauseIdx][0]){camT=PAUSES[pauseIdx][0];paused=true;const btn=document.getElementById('proceedBtn');btn.textContent=PAUSES[pauseIdx][1];btn.onclick=()=>advance();document.getElementById('proceed').classList.add('show');}}
@@ -721,7 +762,7 @@ function animate(){
 }
 animate();
 function advance(){document.getElementById('proceed').classList.remove('show');const next=PAUSES[pauseIdx][2];if(next===null){document.getElementById('ending').classList.add('show');stopAudio();return;}camT=next;paused=false;pauseIdx++;}
-function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;setSpeed(1);const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';document.getElementById('speedControls').classList.remove('show');document.getElementById('spotifyBtn').classList.remove('show');['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
+function restart(){document.getElementById('ending').classList.remove('show');camT=0;pauseIdx=0;paused=false;walking=false;curRoom=-1;stopAudio();tYaw=tPitch=lYaw=lPitch=0;setSpeed(1);const intro=document.getElementById('intro');intro.style.cssText='display:flex;opacity:1;pointer-events:all';document.getElementById('dots').style.opacity='0';document.getElementById('speedControls').classList.remove('show');document.getElementById('spotifyBtn').classList.remove('show');const sp=document.getElementById('spotifyPlayer');sp.classList.remove('show');sp.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('on'));}
 document.getElementById('startBtn').onclick=()=>{initAudio();const intro=document.getElementById('intro');intro.style.opacity='0';setTimeout(()=>intro.style.display='none',1500);document.getElementById('dots').style.opacity='1';document.getElementById('speedControls').classList.add('show');document.getElementById('spotifyBtn').classList.add('show');walking=true;};
 
 // ── LOAD CONFIG ──────────────────────────────────────────────────
@@ -780,7 +821,45 @@ function buildGrid(){
     </div>`).join('')}
     <button class="abtn pri" onclick="saveSpotifyAdmin()" style="margin-top:.3rem">SPOTIFY OPSLAAN</button>
   </div>`;
-  document.getElementById('adminGrid').innerHTML=spotifySection+rooms.map(r=>`
+  // Concept CMS section
+  const conceptFields=[
+    {key:'hero_sub',label:'Hero ondertitel',placeholder:'Tijn Molenaar · KuBV Masterpiece 2025/2026'},
+    {key:'hero_title',label:'Hero titel',placeholder:'Concept Ontwikkeling'},
+    {key:'hero_text',label:'Hero tekst',placeholder:'Het volledige proces van eerste idee tot digitaal kunstwerk...'},
+    {key:'step1_title',label:'Stap 1 — Titel',placeholder:'De observatie — media om ons heen'},
+    {key:'step1_text',label:'Stap 1 — Tekst',placeholder:'Het begon met een simpele vraag...',multi:true},
+    {key:'step2_title',label:'Stap 2 — Titel',placeholder:'Het concept — drie kamers, drie werkelijkheden'},
+    {key:'step2_text',label:'Stap 2 — Tekst',placeholder:'Ik wilde de kijker meenemen...',multi:true},
+    {key:'step3_title',label:'Stap 3 — Titel',placeholder:'Poging 1 — Blender'},
+    {key:'step3_text',label:'Stap 3 — Tekst',placeholder:'De eerste aanpak was logisch...',multi:true},
+    {key:'step4_title',label:'Stap 4 — Titel',placeholder:'Poging 2 — Claude Chat'},
+    {key:'step4_text',label:'Stap 4 — Tekst',placeholder:'Met het Blender-pad doodgelopen...',multi:true},
+    {key:'step5_title',label:'Stap 5 — Titel',placeholder:'De doorbraak — Claude Code'},
+    {key:'step5_text',label:'Stap 5 — Tekst',placeholder:'En toen ontdekte ik Claude Code...',multi:true},
+    {key:'step6_title',label:'Stap 6 — Titel',placeholder:'Het bouwen — iteratie op iteratie'},
+    {key:'step6_text',label:'Stap 6 — Tekst',placeholder:'Met Claude Code als partner...',multi:true},
+    {key:'step7_title',label:'Stap 7 — Titel',placeholder:'Het resultaat'},
+    {key:'step7_text',label:'Stap 7 — Tekst',placeholder:'Dit project toont aan dat technologie...',multi:true},
+    {key:'verdict_text',label:'Verdict tekst',placeholder:'Drie Kamers van Werkelijkheid is een interactieve...',multi:true},
+    {key:'verdict_quote',label:'Verdict citaat',placeholder:'Wanneer mensen niet meer zelf kritisch reflecteren...'},
+    {key:'verdict_author',label:'Citaat auteur',placeholder:'Hannah Arendt'},
+    {key:'footer_text',label:'Footer',placeholder:'Tijn Molenaar · Drie Kamers van Werkelijkheid · 2025/2026'},
+  ];
+  const conceptSection=`<div class="roomSec"><h3><span class="rDot" style="background:#e8d090"></span>CONCEPT PAGINA — TEKSTEN</h3>
+    <div style="padding:.5rem 0;font-size:.56rem;color:#6a6040;letter-spacing:.12em;line-height:1.8;margin-bottom:.6rem">
+      Pas de teksten van de concept-pagina aan. Laat een veld leeg om de standaardtekst te gebruiken.<br>
+      Gebruik <code style="background:#111;padding:1px 5px">&lt;em&gt;tekst&lt;/em&gt;</code> voor cursief en <code style="background:#111;padding:1px 5px">&lt;strong&gt;tekst&lt;/strong&gt;</code> voor vet.
+    </div>
+    ${conceptFields.map(f=>`<div style="margin-bottom:.8rem">
+      <label style="display:block;font-size:.48rem;letter-spacing:.2em;color:#8a7a50;margin-bottom:.25rem">${f.label}</label>
+      ${f.multi
+        ?`<textarea id="cms_${f.key}" rows="4" placeholder="${f.placeholder}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none;resize:vertical;line-height:1.6">${CONCEPT_TEXTS[f.key]||''}</textarea>`
+        :`<input type="text" id="cms_${f.key}" value="${(CONCEPT_TEXTS[f.key]||'').replace(/"/g,'&quot;')}" placeholder="${f.placeholder}" style="width:100%;background:#040404;border:1px solid #1e1e1e;border-bottom-color:#444;color:#bbb;padding:.45rem .65rem;font-family:Georgia,serif;font-size:.72rem;outline:none">`
+      }
+    </div>`).join('')}
+    <button class="abtn pri" onclick="saveConceptAdmin()" style="margin-top:.3rem">CONCEPT TEKSTEN OPSLAAN</button>
+  </div>`;
+  document.getElementById('adminGrid').innerHTML=spotifySection+conceptSection+rooms.map(r=>`
     <div class="roomSec"><h3><span class="rDot" style="background:${r.col}"></span>${r.name}</h3>
     <div class="pGrid">${r.keys.map(k=>{const s=statText(MEDIA[k]);return`<div class="pCard"><div class="pKey">${k}</div><div class="pStat ${s.has?'has':''}">${s.t}</div><button class="abtn" style="font-size:.56rem" onclick="openEdit('${k}')">✎ BEWERKEN</button></div>`;}).join('')}</div></div>
   `).join('');
@@ -978,6 +1057,7 @@ function buildConfig(){
   MKEYS.forEach(k=>{if(MEDIA[k])cfg[k]=MEDIA[k];});
   const sp={};[0,1,2].forEach(i=>{if(SPOTIFY_URLS[i])sp[i]=SPOTIFY_URLS[i];});
   if(Object.keys(sp).length)cfg._spotify=sp;
+  if(Object.keys(CONCEPT_TEXTS).length)cfg._concept=CONCEPT_TEXTS;
   return cfg;
 }
 function downloadConfig(){
@@ -999,6 +1079,13 @@ async function saveSpotifyAdmin(){
   showToast('Spotify-links opgeslagen — media-config.json gedownload, commit naar GitHub voor alle browsers');
   buildGrid();
 }
+async function saveConceptAdmin(){
+  const fields=['hero_sub','hero_title','hero_text','step1_title','step1_text','step2_title','step2_text','step3_title','step3_text','step4_title','step4_text','step5_title','step5_text','step6_title','step6_text','step7_title','step7_text','verdict_text','verdict_quote','verdict_author','footer_text'];
+  fields.forEach(k=>{const el=document.getElementById(`cms_${k}`);if(el){const v=el.value.trim();if(v)CONCEPT_TEXTS[k]=v;else delete CONCEPT_TEXTS[k];}});
+  await saveConceptTexts();
+  autoSaveConfig();
+  showToast('Concept teksten opgeslagen — media-config.json gedownload, commit naar GitHub voor alle browsers');
+}
 async function clearEdit(){
   MEDIA[editingKey]=null;refreshPainting(editingKey);
   await safeStore.delete(`painting:${editingKey}`);
@@ -1016,6 +1103,7 @@ async function clearEdit(){
   // media-config.json overschrijft: dit is de gedeelde bron voor alle browsers
   await loadConfig();
   await loadSpotify();
+  await loadConcept();
   buildScene();
 })();
 </script>
