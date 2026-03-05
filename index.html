@@ -182,6 +182,7 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
     <div id="loginSection">
       <p>MEDIA BEHEER — BEVEILIGD</p>
       <input type="password" id="pwdInput" placeholder="wachtwoord" onkeydown="if(event.key==='Enter')checkPwd()">
+      <label style="display:flex;align-items:center;gap:.4rem;margin-top:.4rem;cursor:pointer"><input type="checkbox" id="rememberMe" checked><span style="font-size:.52rem;letter-spacing:.15em;color:#555">Onthoud mij</span></label>
       <div id="pwdError"></div>
       <div style="display:flex;gap:.5rem;margin-top:.3rem">
         <button class="abtn pri" onclick="checkPwd()">INLOGGEN</button>
@@ -780,6 +781,12 @@ async function loadConfig(){
 const ADMIN_PWD='Tijn2026!';
 let adminLoggedIn=false,editingKey=null,curEditType='none';
 
+// Check saved password
+function checkSavedLogin(){
+  try{const s=localStorage.getItem('admin_auth');if(s===ADMIN_PWD){adminLoggedIn=true;return true;}}catch(e){}
+  return false;
+}
+
 function triggerAdmin(){
   document.getElementById('adminOverlay').style.display='flex';
   if(adminLoggedIn){showPanel();}
@@ -793,11 +800,18 @@ async function reloadConfig(){
   if(btn)btn.textContent='↺ HERLAAD';
 }
 function checkPwd(){
-  if(document.getElementById('pwdInput').value===ADMIN_PWD){adminLoggedIn=true;showPanel();}
-  else{document.getElementById('pwdError').textContent='Onjuist wachtwoord';document.getElementById('pwdInput').value='';}
+  if(document.getElementById('pwdInput').value===ADMIN_PWD){
+    adminLoggedIn=true;
+    if(document.getElementById('rememberMe')?.checked){try{localStorage.setItem('admin_auth',ADMIN_PWD);}catch(e){}}
+    showPanel();
+  }else{document.getElementById('pwdError').textContent='Onjuist wachtwoord';document.getElementById('pwdInput').value='';}
 }
 function showPanel(){document.getElementById('loginSection').style.display='none';document.getElementById('panelSection').style.display='block';buildGrid();}
 function closeAdmin(){document.getElementById('adminOverlay').style.display='none';document.getElementById('pwdInput').value='';document.getElementById('pwdError').textContent='';}
+
+// Auto-open admin via ?admin or #admin in URL
+checkSavedLogin();
+if(location.search.includes('admin')||location.hash.includes('admin')){triggerAdmin();}
 
 function statText(m){if(!m)return{t:'Geen media',has:false};const map={photo:'📷 Foto',audio:'🎵 Audio',mp4:'🎬 Video (bestand)',youtube:'▶ YouTube'};return{t:map[m.type]||'–',has:true};}
 function buildGrid(){
