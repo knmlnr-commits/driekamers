@@ -2,6 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Drie Kamers van Werkelijkheid</title>
 <link href="https://cdn.quilljs.com/1.3.7/quill.bubble.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
@@ -22,7 +23,8 @@
 .ql-bubble .ql-tooltip .ql-toolbar button:hover .ql-fill,.ql-bubble .ql-tooltip .ql-toolbar button.ql-active .ql-fill{fill:#e8d090}
 .cms-wysiwyg-wrap{margin-bottom:.8rem}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
+body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff;touch-action:none;-webkit-touch-callout:none}
+canvas{display:block;touch-action:none}
 #intro{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:50;transition:opacity 1.4s}
 .by{font-size:.68rem;letter-spacing:.4em;color:#444;text-align:center}
 #intro h1{font-size:clamp(2rem,5vw,3.4rem);letter-spacing:.1em;text-align:center;color:#e8d090;line-height:1.2}
@@ -139,6 +141,47 @@ body{background:#000;overflow:hidden;font-family:'Georgia',serif;color:#fff}
 .abtn.pri:hover{border-color:#99b;color:#eef}
 .abtn.red{border-color:#3a1a1a;color:#855}
 .abtn.red:hover{border-color:#a33;color:#e66}
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media(max-width:768px){
+  body{overflow:hidden;-webkit-overflow-scrolling:touch}
+  #intro h1{font-size:clamp(1.4rem,6vw,2.4rem);letter-spacing:.06em}
+  #intro p{font-size:.72rem;max-width:85vw;line-height:1.6}
+  .by{font-size:.52rem;letter-spacing:.2em}
+  .btn{font-size:.62rem;padding:.6rem 1.5rem;letter-spacing:.18em}
+  #hint{font-size:.46rem;right:.6rem;top:.6rem;letter-spacing:.1em;line-height:1.6}
+  #proceed{bottom:2rem}
+  #dots{bottom:.8rem;gap:.45rem}
+  .dot{width:6px;height:6px}
+  #speedControls{bottom:2.6rem;right:.6rem;gap:.3rem}
+  .speedBtn{width:28px;height:28px;font-size:.58rem}
+  #speedLabel{font-size:.4rem}
+  #spotifyBtn{bottom:.6rem;right:.6rem;font-size:.5rem;padding:.35rem .7rem}
+  #spotifyPlayer{width:260px;height:80px;bottom:3rem;right:.6rem}
+  #mInner{width:min(95vw,640px)}
+  #mClose{font-size:.55rem;padding:.3rem .7rem}
+  #mLabel{font-size:.45rem;letter-spacing:.3em}
+  .abox{padding:1.5rem 1rem}
+  .abox blockquote{font-size:.78rem;line-height:1.7}
+  .abox cite{font-size:.6rem}
+  #adminBox{width:100%}
+  .aHdr{padding:.7rem .9rem}
+  .aBody{padding:.9rem}
+  .pGrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.3rem}
+  .pCard{padding:.55rem .6rem}
+  #editBox{width:98vw}
+  .eHdr{padding:.6rem .8rem}
+  .eBody{padding:.8rem}
+}
+@media(max-width:480px){
+  #intro h1{font-size:clamp(1.1rem,7vw,1.8rem)}
+  #intro p{font-size:.62rem}
+  .btn{font-size:.55rem;padding:.5rem 1.2rem}
+  #hint{display:none}
+  #speedControls{bottom:2.2rem;right:.4rem}
+  #spotifyBtn{right:.4rem;bottom:.4rem}
+  #spotifyPlayer{width:220px;right:.4rem;bottom:2.6rem}
+  .pGrid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -347,8 +390,8 @@ function refreshPainting(key){
 
 function buildScene(){
   const goldMat=new THREE.MeshLambertMaterial({color:0xd4a820,emissive:0x221800,emissiveIntensity:.7});
-  const greenFM=new THREE.MeshLambertMaterial({color:0x2c4418,emissive:0x080e04,emissiveIntensity:.5});
-  const redFM  =new THREE.MeshLambertMaterial({color:0x680606,emissive:0x180101,emissiveIntensity:.6});
+  const greenFM=new THREE.MeshLambertMaterial({color:0x0e1a30,emissive:0x040810,emissiveIntensity:.5});
+  const redFM  =new THREE.MeshLambertMaterial({color:0x4a0606,emissive:0x120101,emissiveIntensity:.5});
 
   function painting(x,y,z,ry,w,h,painterFn,fm,mediaKey,label){
     const tex=mkTex(PW,PH,painterFn);
@@ -367,23 +410,23 @@ function buildScene(){
 
   const RW=6,RH=3.6;
   room(1,-7,0x3a1c08,0x140802,0x543818);doorwall(-7,0x3a1c08);
-  room(-7,-15,0x0c1a0a,0x060d04,0x101e0e);doorwall(-15,0x0c1a0a);
-  room(-15,-23,0x360202,0x080000,0x240101);
-  pln(RW,RH,new THREE.MeshLambertMaterial({color:0x1e0101,side:DS}),0,RH/2,-23,0,0);
+  room(-7,-15,0x0a0e1e,0x030408,0x0c1020);doorwall(-15,0x0a0e1e);
+  room(-15,-23,0x220404,0x060000,0x1a0202);
+  pln(RW,RH,new THREE.MeshLambertMaterial({color:0x160202,side:DS}),0,RH/2,-23,0,0);
 
   const r1z=[-1.4,-3.5,-5.6],r2z=[-8.2,-10.4,-13.0],r3z=[-16.4,-18.6,-21.0];
   r1z.forEach((z,i)=>{painting(-2.97,2.1,z,Math.PI/2,1.35,1.04,P1[i],goldMat,`r1_L${i+1}`,`Kamer I · L${i+1}`);painting(2.97,2.1,z,-Math.PI/2,1.35,1.04,P1[i+3],goldMat,`r1_R${i+1}`,`Kamer I · R${i+1}`);});
   r2z.forEach((z,i)=>{painting(-2.97,2.1,z,Math.PI/2,1.35,1.04,P2[i],greenFM,`r2_L${i+1}`,`Kamer II · L${i+1}`);painting(2.97,2.1,z,-Math.PI/2,1.35,1.04,P2[i+3],greenFM,`r2_R${i+1}`,`Kamer II · R${i+1}`);});
   r3z.forEach((z,i)=>{painting(-2.97,2.1,z,Math.PI/2,1.35,1.04,P3[i],redFM,`r3_L${i+1}`,`Kamer III · L${i+1}`);painting(2.97,2.1,z,-Math.PI/2,1.35,1.04,P3[i+3],redFM,`r3_R${i+1}`,`Kamer III · R${i+1}`);});
 
-  function doorSign(z,num,title,ac,bg){const tex=mkTex(512,96,(c,W,H)=>{c.fillStyle=bg;c.fillRect(0,0,W,H);c.strokeStyle=ac;c.lineWidth=2;c.strokeRect(6,6,W-12,H-12);c.textAlign='center';c.fillStyle='rgba(255,255,255,.3)';c.font=`${~~(W*.054)}px Georgia`;c.fillText(num,W/2,H*.42);c.fillStyle=ac;c.font=`bold ${~~(W*.088)}px Georgia`;c.fillText(title,W/2,H*.78);});const m=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.58),new THREE.MeshBasicMaterial({map:tex}));m.position.set(0,3.12,z);scene.add(m);}
-  doorSign(-0.4,'KAMER  I','De Nieuwskamer','rgba(230,205,110,1)','rgba(22,13,3,.9)');
-  doorSign(-6.95,'KAMER  II','De Twijfelkamer','rgba(130,200,110,1)','rgba(8,18,6,.9)');
-  doorSign(-14.95,'KAMER  III','De Propagandakamer','rgba(255,90,72,1)','rgba(20,4,4,.9)');
+  function doorSign(z,num,ac,bg){const tex=mkTex(512,64,(c,W,H)=>{c.fillStyle=bg;c.fillRect(0,0,W,H);c.strokeStyle=ac;c.lineWidth=2;c.strokeRect(6,6,W-12,H-12);c.textAlign='center';c.fillStyle=ac;c.font=`bold ${~~(W*.11)}px Georgia`;c.fillText(num,W/2,H*.68);});const m=new THREE.Mesh(new THREE.PlaneGeometry(2.2,.32),new THREE.MeshBasicMaterial({map:tex}));m.position.set(0,3.18,z);scene.add(m);}
+  doorSign(-0.4,'Kamer 1','rgba(230,205,110,1)','rgba(22,13,3,.9)');
+  doorSign(-6.95,'Kamer 2','rgba(120,160,220,1)','rgba(4,8,18,.9)');
+  doorSign(-14.95,'Kamer 3','rgba(255,90,72,1)','rgba(20,4,4,.9)');
 
   function quotePlaque(z,quote,ac,bg){const tex=mkTex(512,200,(c,W,H)=>{c.fillStyle=bg;c.fillRect(0,0,W,H);c.strokeStyle=ac;c.lineWidth=1.5;c.strokeRect(8,8,W-16,H-16);c.fillStyle=ac.replace(',1)',',0.18)');c.font=`${~~(W*.18)}px Georgia`;c.textAlign='left';c.fillText('"',14,H*.46);c.fillStyle=ac;c.font=`italic ${~~(W*.044)}px Georgia`;wC(c,quote,42,H*.26,W-56,~~(W*.054));});const m=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.64),new THREE.MeshBasicMaterial({map:tex}));m.position.set(2.97,1.2,z);m.rotation.y=-Math.PI/2;scene.add(m);}
   quotePlaque(-3.2,'"Goede journalistiek toont de wereld zoals ze is — meervoudig, complex, altijd in beweging."','rgba(230,200,120,1)','rgba(22,13,3,.88)');
-  quotePlaque(-11.2,'"Niet alles is wat het lijkt. Hetzelfde beeld, een andere kop — en de werkelijkheid verschuift."','rgba(130,200,110,1)','rgba(6,16,5,.88)');
+  quotePlaque(-11.2,'"Niet alles is wat het lijkt. Hetzelfde beeld, een andere kop — en de werkelijkheid verschuift."','rgba(120,160,220,1)','rgba(4,8,18,.88)');
   quotePlaque(-19.2,'"Eén stem. Eén waarheid. Herhaling als wapen. De realiteit wordt geconstrueerd."','rgba(220,70,55,1)','rgba(18,3,3,.88)');
 
   const aTex=mkTex(512,256,(c,W,H)=>{c.fillStyle='#060000';c.fillRect(0,0,W,H);c.strokeStyle='rgba(198,118,108,.22)';c.lineWidth=1.5;c.strokeRect(14,14,W-28,H-28);c.fillStyle='#c0a09a';c.font=`italic ${~~(W*.036)}px Georgia`;c.textAlign='center';['"Wanneer mensen niet meer zelf kritisch','reflecteren op wat juist of onjuist is,','ontstaat ruimte voor haat en ontmenselijking."'].forEach((l,i)=>c.fillText(l,W/2,H*.28+i*H*.19));c.fillStyle='rgba(198,118,108,.4)';c.font=`${~~(W*.029)}px Georgia`;c.fillText('— Hannah Arendt (1906–1975)',W/2,H*.83);});
@@ -580,16 +623,53 @@ function buildScene(){
     // ═══════════════════════════════════════════════════════════════
 
     // One lonely chair in the back-right corner
-    makeChair(2.1,-13.5,-Math.PI*.75,0x1a2a12,0x0e1e08);
+    makeChair(2.1,-13.5,-Math.PI*.75,0x121828,0x080e1a);
 
     // Windows on left wall (dark exterior)
-    makeWindow(-RW/2,-9.0,Math.PI/2,0x1a2a12);
-    makeWindow(-RW/2,-11.5,Math.PI/2,0x1a2a12);
-    makeWindow(-RW/2,-13.8,Math.PI/2,0x1a2a12);
+    makeWindow(-RW/2,-9.0,Math.PI/2,0x121828);
+    makeWindow(-RW/2,-11.5,Math.PI/2,0x121828);
+    makeWindow(-RW/2,-13.8,Math.PI/2,0x121828);
 
     // Windows on right wall (dark exterior)
-    makeWindow(RW/2,-9.0,-Math.PI/2,0x1a2a12);
-    makeWindow(RW/2,-11.5,-Math.PI/2,0x1a2a12);
+    makeWindow(RW/2,-9.0,-Math.PI/2,0x121828);
+    makeWindow(RW/2,-11.5,-Math.PI/2,0x121828);
+
+    // White TL-balk on ceiling
+    (function(){
+      const tlMat=new THREE.MeshBasicMaterial({color:0xeeeeff});
+      const tlBar=new THREE.Mesh(boxG(0.12,0.04,6),tlMat);
+      tlBar.position.set(0,RH-0.02,-11);scene.add(tlBar);
+      // Subtle glow from TL
+      const tlGlow=new THREE.PointLight(0xddeeff,1.2,10);
+      tlGlow.position.set(0,RH-0.1,-11);scene.add(tlGlow);
+    })();
+
+    // Crumpled paper trash on floor
+    (function(){
+      const paperColors=[0xd8d0c0,0xc8c0b0,0xbbb5a5,0xe0d8c8];
+      const paperPositions=[
+        [-1.2,-8.5],[0.8,-9.2],[-0.4,-10.8],[1.5,-11.5],
+        [-1.8,-12.0],[0.3,-13.2],[1.9,-9.8],[-0.9,-11.0],
+        [0.5,-12.5],[-1.5,-10.2],[1.1,-13.8],[-0.2,-8.8]
+      ];
+      paperPositions.forEach(([px,pz])=>{
+        const col=paperColors[Math.floor(Math.random()*paperColors.length)];
+        const pMat=new THREE.MeshLambertMaterial({color:col});
+        // Irregular crumpled shape using deformed icosahedron
+        const geo=new THREE.IcosahedronGeometry(.04+Math.random()*.04,0);
+        const posAttr=geo.attributes.position;
+        for(let i=0;i<posAttr.count;i++){
+          posAttr.setX(i,posAttr.getX(i)*(0.5+Math.random()*1.2));
+          posAttr.setY(i,posAttr.getY(i)*(0.3+Math.random()*0.6));
+          posAttr.setZ(i,posAttr.getZ(i)*(0.5+Math.random()*1.2));
+        }
+        posAttr.needsUpdate=true;geo.computeVertexNormals();
+        const paper=new THREE.Mesh(geo,pMat);
+        paper.position.set(px,0.03,pz);
+        paper.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+        scene.add(paper);
+      });
+    })();
 
     // ═══════════════════════════════════════════════════════════════
     // KAMER III: DE PROPAGANDAKAMER — NO furniture, NO windows
@@ -598,27 +678,43 @@ function buildScene(){
     // ═══════════════════════════════════════════════════════════════
 
     // Blood drips/stains on left wall
-    const bloodMat=new THREE.MeshLambertMaterial({color:0x4a0000,transparent:true,opacity:.5,side:DS});
-    for(let i=0;i<12;i++){
+    const bloodMat=new THREE.MeshLambertMaterial({color:0x4a0000,transparent:true,opacity:.55,side:DS});
+    const bloodDark=new THREE.MeshLambertMaterial({color:0x2a0000,transparent:true,opacity:.4,side:DS});
+    for(let i=0;i<18;i++){
       const sz=-15.5-Math.random()*7;
       const sy=RH-Math.random()*1.2;
-      const dripH=.3+Math.random()*1.5;
-      const dripW=.04+Math.random()*.08;
-      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),bloodMat);
+      const dripH=.3+Math.random()*2.0;
+      const dripW=.04+Math.random()*.1;
+      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),Math.random()>.5?bloodMat:bloodDark);
       drip.position.set(-RW/2+.01,sy-dripH/2,sz);drip.rotation.y=Math.PI/2;scene.add(drip);
     }
     // Blood drips on right wall
-    for(let i=0;i<12;i++){
+    for(let i=0;i<18;i++){
       const sz=-15.5-Math.random()*7;
       const sy=RH-Math.random()*1.2;
-      const dripH=.3+Math.random()*1.5;
-      const dripW=.04+Math.random()*.08;
-      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),bloodMat);
+      const dripH=.3+Math.random()*2.0;
+      const dripW=.04+Math.random()*.1;
+      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),Math.random()>.5?bloodMat:bloodDark);
       drip.position.set(RW/2-.01,sy-dripH/2,sz);drip.rotation.y=-Math.PI/2;scene.add(drip);
     }
+    // Blood drips on back wall
+    for(let i=0;i<14;i++){
+      const sx=-2.5+Math.random()*5;
+      const sy=RH-Math.random()*1.5;
+      const dripH=.4+Math.random()*2.2;
+      const dripW=.04+Math.random()*.1;
+      const drip=new THREE.Mesh(new THREE.PlaneGeometry(dripW,dripH),Math.random()>.5?bloodMat:bloodDark);
+      drip.position.set(sx,sy-dripH/2,-22.99);scene.add(drip);
+    }
+    // Large blood smears on walls
+    const smearMat=new THREE.MeshLambertMaterial({color:0x3a0000,transparent:true,opacity:.3,side:DS});
+    [[-RW/2+.01,-17.5,Math.PI/2],[-RW/2+.01,-20,Math.PI/2],[RW/2-.01,-18.5,-Math.PI/2],[RW/2-.01,-21,-Math.PI/2]].forEach(([wx,wz,wry])=>{
+      const smear=new THREE.Mesh(new THREE.PlaneGeometry(.6+Math.random()*.5,.8+Math.random()*.6),smearMat);
+      smear.position.set(wx,1+Math.random()*1.5,wz);smear.rotation.y=wry;scene.add(smear);
+    });
     // Blood splatter on floor
     const splatMat=new THREE.MeshLambertMaterial({color:0x3a0000,transparent:true,opacity:.35,side:DS});
-    for(let i=0;i<8;i++){
+    for(let i=0;i<12;i++){
       const sx=-1.5+Math.random()*3;
       const sz=-16-Math.random()*6;
       const r=.15+Math.random()*.35;
@@ -630,7 +726,7 @@ function buildScene(){
 
   scene.add(new THREE.AmbientLight(0x111111,.3));
   l1a=ptL(0xffcc66,3.0,14,0,3.2,-3.5);
-  ptL(0x3a5a26,1.5,12,0,3,-11);
+  ptL(0x8899cc,2.5,14,0,3,-11);
   l3a=ptL(0xff0000,4.2,12,0,3.2,-19);l3b=ptL(0xcc0000,1.9,8,2,1.8,-21.2);l3c=ptL(0xdd0000,1.3,7,-2,2.4,-17.2);
 }
 
@@ -678,7 +774,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 // ── MEDIA OVERLAY ─────────────────────────────────────────────────
 let mediaOpen=false,extUrl='';
-const overlayBg={0:'rgba(18,10,2,.95)',1:'rgba(4,12,4,.95)',2:'rgba(12,2,2,.95)'};
+const overlayBg={0:'rgba(18,10,2,.95)',1:'rgba(4,6,16,.95)',2:'rgba(12,2,2,.95)'};
 function openMedia(media,label){
   mediaOpen=true;const ov=document.getElementById('mOverlay');ov.style.background=overlayBg[curRoom]||'rgba(0,0,0,.93)';ov.classList.add('show');
   document.getElementById('mLabel').textContent=label.toUpperCase();
@@ -698,7 +794,7 @@ function handleOverlayClick(e){if(e.target===document.getElementById('mOverlay')
 const KF=[[0,5,1.5],[.08,2,-1.5],[.22,-2.5,-5.5],[.30,-6.2,-8.8],[.46,-10,-13.5],[.56,-13.8,-16.8],[.66,-17.2,-20.5],[.86,-20.5,-22.5],[1,-21.4,-22.8]];
 function sm(t){return t*t*(3-2*t);}
 function getPos(t){for(let i=0;i<KF.length-1;i++){if(t>=KF[i][0]&&t<=KF[i+1][0]){const f=sm((t-KF[i][0])/(KF[i+1][0]-KF[i][0]));return{pz:KF[i][1]+(KF[i+1][1]-KF[i][1])*f,lz:KF[i][2]+(KF[i+1][2]-KF[i][2])*f};}}return{pz:KF.at(-1)[1],lz:KF.at(-1)[2]};}
-const PAUSES=[[.30,'BETREED KAMER II →',.31],[.56,'BETREED KAMER III →',.57],[.92,'ZIE DE CONCLUSIE →',null]];
+const PAUSES=[[.30,'BETREED KAMER 2 →',.31],[.56,'BETREED KAMER 3 →',.57],[.92,'ZIE DE CONCLUSIE →',null]];
 let walking=false,camT=0,speed=.00016,tick=0,paused=false,pauseIdx=0,curRoom=-1;
 let l1a,l3a,l3b,l3c;
 const SPEEDS=[.00008,.00016,.00032];
