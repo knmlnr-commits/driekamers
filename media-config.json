@@ -77,6 +77,11 @@
     "type": "mp4",
     "src": "media/isr2.mp4"
   },
+  "r3_R3": {
+    "type": "photo",
+    "src": "media/tru1.png",
+    "caption": ""
+  },
   "_spotify": {
     "0": "https://open.spotify.com/track/1V6IHDltaFVT7PmROGCmMX?si=17908e4613374911",
     "1": "https://open.spotify.com/track/4CeeEOM32jQcH3eN9Q2dGj?si=0688f67a0d704c40",
