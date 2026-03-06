@@ -194,7 +194,7 @@ canvas{display:block;touch-action:none}
     <button class="btn" id="startBtn">BETREED DE KAMERS</button>
     <a href="concept.html" class="btn" style="text-decoration:none;display:inline-block;text-align:center">CONCEPT</a>
   </div>
-  <p style="font-size:.5rem;letter-spacing:.3em;color:#333;margin-top:.5rem">v15.0</p>
+  <p style="font-size:.5rem;letter-spacing:.3em;color:#333;margin-top:.5rem">v16.0</p>
 </div>
 <div id="proceed"><button class="btn" id="proceedBtn"></button></div>
 <div id="dots"><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
@@ -424,10 +424,6 @@ function buildScene(){
   doorSign(-6.95,'Kamer 2','rgba(120,160,220,1)','rgba(4,8,18,.9)');
   doorSign(-14.95,'Kamer 3','rgba(255,90,72,1)','rgba(20,4,4,.9)');
 
-  function quotePlaque(z,quote,ac,bg){const tex=mkTex(512,200,(c,W,H)=>{c.fillStyle=bg;c.fillRect(0,0,W,H);c.strokeStyle=ac;c.lineWidth=1.5;c.strokeRect(8,8,W-16,H-16);c.fillStyle=ac.replace(',1)',',0.18)');c.font=`${~~(W*.18)}px Georgia`;c.textAlign='left';c.fillText('"',14,H*.46);c.fillStyle=ac;c.font=`italic ${~~(W*.044)}px Georgia`;wC(c,quote,42,H*.26,W-56,~~(W*.054));});const m=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.64),new THREE.MeshBasicMaterial({map:tex}));m.position.set(2.97,1.2,z);m.rotation.y=-Math.PI/2;scene.add(m);}
-  quotePlaque(-3.2,'"Goede journalistiek toont de wereld zoals ze is — meervoudig, complex, altijd in beweging."','rgba(230,200,120,1)','rgba(22,13,3,.88)');
-  quotePlaque(-11.2,'"Niet alles is wat het lijkt. Hetzelfde beeld, een andere kop — en de werkelijkheid verschuift."','rgba(120,160,220,1)','rgba(4,8,18,.88)');
-  quotePlaque(-19.2,'"Eén stem. Eén waarheid. Herhaling als wapen. De realiteit wordt geconstrueerd."','rgba(220,70,55,1)','rgba(18,3,3,.88)');
 
   const aTex=mkTex(512,256,(c,W,H)=>{c.fillStyle='#060000';c.fillRect(0,0,W,H);c.strokeStyle='rgba(198,118,108,.22)';c.lineWidth=1.5;c.strokeRect(14,14,W-28,H-28);c.fillStyle='#c0a09a';c.font=`italic ${~~(W*.036)}px Georgia`;c.textAlign='center';['"Wanneer mensen niet meer zelf kritisch','reflecteren op wat juist of onjuist is,','ontstaat ruimte voor haat en ontmenselijking."'].forEach((l,i)=>c.fillText(l,W/2,H*.28+i*H*.19));c.fillStyle='rgba(198,118,108,.4)';c.font=`${~~(W*.029)}px Georgia`;c.fillText('— Hannah Arendt (1906–1975)',W/2,H*.83);});
   const aM=new THREE.Mesh(new THREE.PlaneGeometry(3.8,1.9),new THREE.MeshBasicMaterial({map:aTex}));aM.position.set(0,2,-22.9);scene.add(aM);
