@@ -16,8 +16,15 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
 .topbar-back{font-size:.56rem;letter-spacing:.22em;color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);padding:.35rem 1rem;transition:all .3s;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}
 .topbar-back:hover{color:#e8d090;border-color:rgba(232,208,144,.3)}
 
+/* Sticky section nav */
+.secnav{position:sticky;top:3.2rem;left:0;right:0;display:flex;align-items:center;gap:0;background:rgba(5,5,5,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(232,208,144,.06);z-index:99;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.secnav::-webkit-scrollbar{display:none}
+.secnav a{flex-shrink:0;font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(232,208,144,.3);padding:.7rem 1.3rem;border:none;border-bottom:2px solid transparent;transition:all .3s;text-decoration:none}
+.secnav a:hover{color:rgba(232,208,144,.7);background:rgba(232,208,144,.03)}
+.secnav a.active{color:#e8d090;border-bottom-color:#e8d090}
+
 /* Hero */
-.hero{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+.hero{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(232,208,144,.04) 0%,transparent 70%)}
 .hero h1{font-size:clamp(1.8rem,4vw,3rem);letter-spacing:.08em;color:#e8d090;margin-bottom:1rem;position:relative}
 .hero .sub{font-size:.72rem;letter-spacing:.35em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:2rem}
@@ -54,6 +61,38 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
 .verdict p{color:#c0a878;font-size:.92rem;line-height:2}
 .verdict .big{font-size:1.1rem;color:#e8d090;letter-spacing:.04em;margin-top:.5rem}
 
+/* New sections (shared) */
+.section{max-width:720px;margin:0 auto;padding:0 2rem 5rem;position:relative}
+.section-head{text-align:center;margin-bottom:2.5rem;padding-top:2rem}
+.section-num{font-size:.52rem;letter-spacing:.4em;color:rgba(232,208,144,.3);text-transform:uppercase;margin-bottom:.6rem}
+.section-title{font-size:clamp(1.2rem,3vw,1.8rem);letter-spacing:.06em;color:#e8d090;margin-bottom:.5rem}
+.section-sub{font-size:.62rem;letter-spacing:.2em;color:rgba(232,208,144,.35);text-transform:uppercase}
+.section-body{color:#8a8070;font-size:.82rem;line-height:2;margin-bottom:1.5rem}
+.section-body p{margin-bottom:.8rem}
+.section-body strong{color:#c0a878}
+.section-body em{color:#b8a878}
+.section-divider{width:40px;height:1px;background:rgba(232,208,144,.12);margin:0 auto 3rem}
+
+/* Big Idea blocks */
+.bigidea-block{background:rgba(232,208,144,.02);border:1px solid rgba(232,208,144,.08);padding:1.8rem 2rem;margin:1.5rem 0;border-radius:2px}
+.bigidea-label{font-size:.48rem;letter-spacing:.3em;color:rgba(232,208,144,.4);text-transform:uppercase;margin-bottom:.6rem}
+.bigidea-quote{font-size:.92rem;color:#d4c090;line-height:2;font-style:italic;margin-bottom:1rem}
+.bigidea-explain{color:#8a8070;font-size:.82rem;line-height:2}
+.bigidea-explain p{margin-bottom:.5rem}
+
+/* Artist cards */
+.artist-grid{display:grid;grid-template-columns:1fr;gap:1.5rem;margin:1.5rem 0}
+.artist-card{background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);padding:1.6rem 1.8rem;border-radius:2px}
+.artist-name{font-size:.95rem;color:#d4c090;letter-spacing:.04em;margin-bottom:.15rem}
+.artist-year{font-size:.52rem;letter-spacing:.2em;color:rgba(232,208,144,.35);margin-bottom:.8rem}
+.artist-desc{color:#8a8070;font-size:.82rem;line-height:2}
+.artist-desc p{margin-bottom:.5rem}
+
+/* Research image placeholder */
+.research-img{background:rgba(255,255,255,.02);border:1px dashed rgba(232,208,144,.12);padding:3rem 2rem;text-align:center;margin:1.5rem 0;border-radius:2px}
+.research-img img{max-width:100%;height:auto;display:block;margin:0 auto}
+.research-img .placeholder{font-size:.56rem;letter-spacing:.2em;color:rgba(232,208,144,.2);text-transform:uppercase}
+
 /* Footer */
 .footer{text-align:center;padding:3rem 2rem;border-top:1px solid rgba(255,255,255,.03)}
 .footer p{font-size:.52rem;letter-spacing:.3em;color:rgba(255,255,255,.12);text-transform:uppercase}
@@ -65,11 +104,15 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
 /* Responsive */
 @media(max-width:600px){
   .topbar{padding:.6rem 1rem}
-  .hero{padding:5rem 1.2rem 3rem}
+  .secnav a{padding:.55rem .8rem;font-size:.42rem;letter-spacing:.15em}
+  .hero{padding:7rem 1.2rem 3rem}
   .timeline{padding:2rem 1rem 4rem}
   .step{padding-left:56px}
   .timeline::before{left:20px}
   .step-num{left:6px}
+  .section{padding:0 1rem 4rem}
+  .bigidea-block{padding:1.2rem 1.2rem}
+  .artist-card{padding:1.2rem 1.2rem}
 }
 </style>
 </head>
@@ -79,6 +122,16 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
   <span class="topbar-title">Concept Ontwikkeling</span>
   <a href="index.html" class="topbar-back">&#8592; TERUG NAAR KAMERS</a>
 </div>
+
+<nav class="secnav" id="secnav">
+  <a href="#concept" data-nav="concept">CONCEPT</a>
+  <a href="#thema" data-nav="thema">THEMA</a>
+  <a href="#bigidea" data-nav="bigidea">BIG IDEA</a>
+  <a href="#inspiratie" data-nav="inspiratie">INSPIRATIE</a>
+  <a href="#onderzoek" data-nav="onderzoek">ONDERZOEK</a>
+</nav>
+
+<div id="concept">
 
 <div class="hero">
   <div class="sub" data-cms="hero_sub">Tijn Molenaar &middot; KuBV Masterpiece 2025/2026</div>
@@ -213,6 +266,124 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
 
 </div>
 
+</div><!-- end #concept -->
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SECTIE 08 — HET THEMA                          -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="thema" class="section">
+  <div class="section-divider"></div>
+  <div class="section-head">
+    <div class="section-num" data-cms="thema_num">Sectie 08</div>
+    <h2 class="section-title" data-cms="thema_title">Het Thema &mdash; Massacultuur</h2>
+    <div class="section-sub" data-cms="thema_sub">Examenthema: Massacultuur &middot; Kernaspect: Mediamanipulatie en propaganda</div>
+  </div>
+  <div class="section-body" data-cms="thema_text">
+    <p>Massacultuur gaat over hoe media, entertainment en informatie op grote schaal worden verspreid en hoe dit het denken van mensen vormt. In het digitale tijdperk is dit krachtiger dan ooit: algoritmes bepalen wat je ziet, deepfakes maken het onmogelijk om echt van nep te onderscheiden, en sociale media versterken extreme verhalen razendsnel.</p>
+    <p>Het kernaspect dat ik heb gekozen is mediamanipulatie en propaganda. Dit thema raakt direct aan de wereld om ons heen: hoe wordt informatie ingezet om meningen te sturen, groepen tegen elkaar op te zetten, of conflicten te rechtvaardigen? Drie Kamers van Werkelijkheid visualiseert deze progressie &mdash; van betrouwbaar nieuws naar twijfel naar pure propaganda &mdash; en dwingt de kijker dit zelf te doorleven in plaats van er alleen over te lezen.</p>
+  </div>
+  <div class="tag">Massacultuur</div>
+  <div class="tag">Mediamanipulatie</div>
+  <div class="tag">Propaganda</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SECTIE 09 — BIG IDEA                           -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="bigidea" class="section">
+  <div class="section-divider"></div>
+  <div class="section-head">
+    <div class="section-num" data-cms="bigidea_num">Sectie 09</div>
+    <h2 class="section-title" data-cms="bigidea_title">Het Inzicht &mdash; Big Idea</h2>
+  </div>
+
+  <div class="bigidea-block">
+    <div class="bigidea-label" data-cms="bigidea1_label">Primaire Big Idea &mdash; nr. 5</div>
+    <div class="bigidea-quote" data-cms="bigidea1_quote">&ldquo;Kunst biedt een onderbreking van het alledaagse en geeft daarmee de mogelijkheid tot alternatieve gedachten en andere perspectieven in relatie tot de wereld en de ander.&rdquo;</div>
+    <div class="bigidea-explain" data-cms="bigidea1_text">
+      <p>Dit inzicht staat centraal in mijn werk. De kijker stapt letterlijk weg van het dagelijks scrollen door nieuws en sociale media, en wordt in een gecontroleerde omgeving gedwongen te ervaren hoe mediamanipulatie werkt. Niet door een tekst te lezen, niet door een debat te volgen &mdash; maar door het fysiek te doorlopen. De drie kamers zijn een onderbreking van het alledaagse medialandschap die leidt tot een ander, scherper perspectief op wat je dagelijks consumeert.</p>
+    </div>
+  </div>
+
+  <div class="bigidea-block">
+    <div class="bigidea-label" data-cms="bigidea2_label">Secundaire Big Idea &mdash; nr. 1</div>
+    <div class="bigidea-quote" data-cms="bigidea2_quote">&ldquo;In kunst ontstaan dialogische relaties tussen artistieke creatieve producten, betekenisgevers en de wereld.&rdquo;</div>
+    <div class="bigidea-explain" data-cms="bigidea2_text">
+      <p>Het werk reageert op de bezoeker. De kijker bepaalt zelf het tempo, klikt op schilderijen, kiest wat hij bekijkt. Dit cre&euml;ert een dialoog tussen het kunstwerk en de bezoeker. Iedereen doorloopt dezelfde kamers, maar ervaart ze anders &mdash; afhankelijk van eigen mediagebruik, politieke achtergrond en kritisch bewustzijn. Die wisselwerking is precies wat Big Idea 1 beschrijft.</p>
+    </div>
+  </div>
+
+  <div class="tag">Big Idea 5</div>
+  <div class="tag">Big Idea 1</div>
+  <div class="tag">Ervaring</div>
+  <div class="tag">Dialoog</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SECTIE 10 — INSPIRATIE                          -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="inspiratie" class="section">
+  <div class="section-divider"></div>
+  <div class="section-head">
+    <div class="section-num" data-cms="inspiratie_num">Sectie 10</div>
+    <h2 class="section-title" data-cms="inspiratie_title">Inspiratiebronnen &mdash; Kunstenaars</h2>
+  </div>
+
+  <div class="artist-grid">
+    <div class="artist-card">
+      <div class="artist-name" data-cms="artist1_name">Barbara Kruger</div>
+      <div class="artist-year" data-cms="artist1_year">1945</div>
+      <div class="artist-desc" data-cms="artist1_text">
+        <p>Amerikaanse conceptueel kunstenaar. Combineert tekst en fotografische beelden om de kijker te confronteren met de werking van media, macht en propaganda. Haar werk gebruikt dezelfde taal als reclame en nieuws &mdash; maar draait de boodschap om.</p>
+        <p>Relevant: zij toont aan dat beeldtaal en framing even krachtig zijn als de inhoud zelf. Precies dat mechanisme visualiseer ik in Kamer II en III.</p>
+      </div>
+      <div class="tag">Mediacritiek</div>
+    </div>
+
+    <div class="artist-card">
+      <div class="artist-name" data-cms="artist2_name">Chiharu Shiota</div>
+      <div class="artist-year" data-cms="artist2_year">1972</div>
+      <div class="artist-desc" data-cms="artist2_text">
+        <p>Japanse installatiekunstenaar. Cre&euml;ert immersieve ruimtelijke ervaringen die de bezoeker emotioneel raken door sfeer, materiaal en ruimte.</p>
+        <p>Relevant: haar werk bewijst dat een fysieke of digitale ruimte zelf het kunstwerk kan zijn &mdash; niet een object erin. Drie Kamers van Werkelijkheid is op dezelfde manier een omgeving die je binnentreedt.</p>
+      </div>
+      <div class="tag">Installatie</div>
+    </div>
+
+    <div class="artist-card">
+      <div class="artist-name" data-cms="artist3_name">Hans Haacke</div>
+      <div class="artist-year" data-cms="artist3_year">1936</div>
+      <div class="artist-desc" data-cms="artist3_text">
+        <p>Duits-Amerikaanse conceptueel kunstenaar. Onderzoekt de relatie tussen media, politieke macht en publieke opinie. Zijn werk stelt kritische vragen over wie informatie controleert en welk effect dat heeft op de samenleving.</p>
+        <p>Relevant: zijn aanpak van kunst als kritisch instrument op mediamacht is de directe inspiratie voor het narratief van mijn drie kamers.</p>
+      </div>
+      <div class="tag">Machtskritiek</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SECTIE 11 — ONDERZOEK                           -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="onderzoek" class="section">
+  <div class="section-divider"></div>
+  <div class="section-head">
+    <div class="section-num" data-cms="onderzoek_num">Sectie 11</div>
+    <h2 class="section-title" data-cms="onderzoek_title">Het Beeldend Onderzoek &mdash; Van schets naar ruimte</h2>
+  </div>
+  <div class="section-body" data-cms="onderzoek_text">
+    <p>Voordat de digitale bouw begon, is het concept visueel onderzocht. De eerste stap was het schetsen van de plattegrond: drie aaneengesloten kamers in &eacute;&eacute;n huis, elk met een eigen identiteit maar verbonden door &eacute;&eacute;n doorlopend narratief. De routing van de kijker &mdash; van links naar rechts, van veilig naar beklemmend &mdash; werd bewust ontworpen.</p>
+    <p>Per kamer is een moodboard samengesteld: kleurpaletten, lichtsfeer, meubilair en materiaalgebruik. Kamer I: warm, goud, victoriaans. Kamer II: koel groen, spaarzaam, onrustig. Kamer III: rood, leeg, bloederig.</p>
+    <p>De overgang tussen kamers is geen toeval &mdash; elke drempel markeert een bewuste stap in de progressie van mediamanipulatie. Dit ruimtelijk narratief was de basis waarop de volledige digitale uitvoering is gebouwd.</p>
+  </div>
+  <div class="research-img" id="onderzoek_img">
+    <div class="placeholder" data-cms-img="onderzoek_img">Schetsen en moodboard beeldend onderzoek</div>
+  </div>
+  <div class="tag">Schetsen</div>
+  <div class="tag">Moodboard</div>
+  <div class="tag">Ruimtelijk narratief</div>
+</div>
+
 <div class="footer">
   <p data-cms="footer_text">Tijn Molenaar &middot; Drie Kamers van Werkelijkheid &middot; 2025/2026</p>
 </div>
@@ -229,7 +400,6 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
     document.querySelectorAll('[data-cms]').forEach(el=>{
       const key=el.dataset.cms;
       if(texts[key]){
-        // For multi-line text fields, wrap paragraphs in <p> tags
         if(el.tagName==='DIV'&&texts[key].includes('\n')){
           el.innerHTML=texts[key].split('\n').filter(l=>l.trim()).map(l=>`<p>${l}</p>`).join('');
         }else{
@@ -237,7 +407,41 @@ a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4)}
         }
       }
     });
+    // Handle CMS images (onderzoek_img)
+    document.querySelectorAll('[data-cms-img]').forEach(el=>{
+      const key=el.dataset.cmsImg;
+      if(texts[key]){
+        const wrap=el.closest('.research-img');
+        if(wrap){wrap.innerHTML=`<img src="${texts[key]}" alt="Schetsen en moodboard beeldend onderzoek">`;}
+      }
+    });
   }catch(e){}
+})();
+
+// Sticky nav — highlight active section on scroll
+(()=>{
+  const nav=document.getElementById('secnav');
+  const links=nav.querySelectorAll('a[data-nav]');
+  const sections=['concept','thema','bigidea','inspiratie','onderzoek'];
+  const offTop=80;
+  function update(){
+    let cur='concept';
+    sections.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&el.getBoundingClientRect().top<=offTop+10)cur=id;
+    });
+    links.forEach(a=>{a.classList.toggle('active',a.dataset.nav===cur);});
+  }
+  window.addEventListener('scroll',update,{passive:true});
+  update();
+  // Smooth scroll on click
+  links.forEach(a=>{
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      const t=document.getElementById(a.dataset.nav);
+      if(t)t.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
 })();
 </script>
 
