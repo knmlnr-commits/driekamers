@@ -777,7 +777,8 @@ function toggleSpotify(){
   if(!url){showToast('Spotify nog niet ingesteld voor deze kamer');return;}
   const embed=spotifyEmbedUrl(url);
   if(!embed){showToast('Ongeldige Spotify-link — gebruik een link van open.spotify.com');return;}
-  player.innerHTML=`<iframe src="${embed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  const autoEmbed=embed+(embed.includes('?')?'&':'?')+'autoplay=1';
+  player.innerHTML=`<iframe src="${autoEmbed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
   player.classList.add('show');spotifyOpen=true;spotifyLoadedRoom=curRoom;
 }
 function updateSpotifyForRoom(){
@@ -788,7 +789,8 @@ function updateSpotifyForRoom(){
   if(!url){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
   const embed=spotifyEmbedUrl(url);
   if(!embed){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
-  player.innerHTML=`<iframe src="${embed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  const autoEmbed=embed+(embed.includes('?')?'&':'?')+'autoplay=1';
+  player.innerHTML=`<iframe src="${autoEmbed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
   spotifyLoadedRoom=curRoom;
 }
 async function loadSpotify(){
