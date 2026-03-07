@@ -762,23 +762,53 @@ window.addEventListener('keydown',e=>{
 const SPOTIFY_URLS={0:'',1:'',2:''};
 // Concept page texts (managed via admin CMS)
 const CONCEPT_TEXTS={};
-let spotifyOpen=false,spotifyLoadedRoom=-1;
+let spotifyOpen=false,spotifyLoadedRoom=-1,spotifyController=null,spotifyApiReady=false;
+function spotifyUri(url){
+  if(!url)return null;
+  const m=url.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/([a-zA-Z0-9]+)/);
+  if(m)return `spotify:${m[1]}:${m[2]}`;
+  return null;
+}
 function spotifyEmbedUrl(url){
   if(!url)return null;
-  // Convert open.spotify.com/track/xxx to embed URL
   const m=url.match(/open\.spotify\.com\/(track|album|playlist|episode|show)\/([a-zA-Z0-9]+)/);
   if(m)return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0`;
   return null;
 }
+// Load Spotify IFrame API
+(function(){
+  const s=document.createElement('script');
+  s.src='https://open.spotify.com/embed/iframe-api/v1';
+  s.onload=function(){spotifyApiReady=true;};
+  document.head.appendChild(s);
+})();
+window.onSpotifyIframeApiReady=function(IFrameAPI){
+  spotifyApiReady=true;
+  window.SpotifyIframeAPI=IFrameAPI;
+};
 function toggleSpotify(){
   const player=document.getElementById('spotifyPlayer');
-  if(spotifyOpen){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
+  if(spotifyOpen){
+    if(spotifyController){try{spotifyController.destroy();}catch(e){}}
+    spotifyController=null;
+    player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;
+  }
   const url=SPOTIFY_URLS[curRoom];
   if(!url){showToast('Spotify nog niet ingesteld voor deze kamer');return;}
   const embed=spotifyEmbedUrl(url);
   if(!embed){showToast('Ongeldige Spotify-link — gebruik een link van open.spotify.com');return;}
-  const autoEmbed=embed+(embed.includes('?')?'&':'?')+'autoplay=1';
-  player.innerHTML=`<iframe src="${autoEmbed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  // Try IFrame API first for seamless switching
+  if(window.SpotifyIframeAPI){
+    player.innerHTML='';
+    const container=document.createElement('div');
+    player.appendChild(container);
+    window.SpotifyIframeAPI.createController(container,{uri:spotifyUri(url),width:'100%',height:'80'},(ctrl)=>{
+      spotifyController=ctrl;
+      ctrl.play();
+    });
+  }else{
+    player.innerHTML=`<iframe src="${embed}&autoplay=1" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  }
   player.classList.add('show');spotifyOpen=true;spotifyLoadedRoom=curRoom;
 }
 function updateSpotifyForRoom(){
@@ -786,11 +816,26 @@ function updateSpotifyForRoom(){
   if(spotifyLoadedRoom===curRoom)return;
   const url=SPOTIFY_URLS[curRoom];
   const player=document.getElementById('spotifyPlayer');
-  if(!url){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
-  const embed=spotifyEmbedUrl(url);
-  if(!embed){player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;}
-  const autoEmbed=embed+(embed.includes('?')?'&':'?')+'autoplay=1';
-  player.innerHTML=`<iframe src="${autoEmbed}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  if(!url){
+    if(spotifyController){try{spotifyController.destroy();}catch(e){}}
+    spotifyController=null;
+    player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;
+  }
+  const uri=spotifyUri(url);
+  if(!uri){
+    if(spotifyController){try{spotifyController.destroy();}catch(e){}}
+    spotifyController=null;
+    player.classList.remove('show');player.innerHTML='';spotifyOpen=false;spotifyLoadedRoom=-1;return;
+  }
+  // Use controller to switch track without destroying iframe — keeps playback going
+  if(spotifyController){
+    spotifyController.loadUri(uri);
+    spotifyController.play();
+  }else{
+    // Fallback: replace iframe
+    const embed=spotifyEmbedUrl(url);
+    if(embed) player.innerHTML=`<iframe src="${embed}&autoplay=1" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+  }
   spotifyLoadedRoom=curRoom;
 }
 async function loadSpotify(){
